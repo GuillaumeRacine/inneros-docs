@@ -1,0 +1,309 @@
+# LaunchAgents
+
+macOS LaunchAgents are the scheduling backbone of InnerOS automation. They replace cron jobs with a more robust, system-native scheduling mechanism that survives reboots, handles failures, and integrates with macOS power management.
+
+## How LaunchAgents Work
+
+A LaunchAgent is a property list (plist) file that tells macOS to run a program on a schedule or in response to an event. Files live in `~/Library/LaunchAgents/` and are managed by `launchctl`.
+
+```
+~/Library/LaunchAgents/
+├── com.inneros.nightcrew.plist          # Main nightly pipeline
+├── com.inneros.defi-monitor.plist       # DeFi position checks
+├── com.inneros.telegram-bridge.plist    # Telegram bot
+├── com.inneros.context-mirror.plist     # File sync for Telegram
+├── com.inneros.health-sync.plist        # Wearable data pull
+└── com.inneros.backup.plist             # Context git backup
+```
+
+## Plist Format
+
+### Basic Scheduled Job
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.inneros.nightcrew</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/local/bin/python3</string>
+        <string>/path/to/nightcrew/pipeline.py</string>
+    </array>
+
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>2</integer>
+        <key>Minute</key>
+        <integer>0</integer>
+    </dict>
+
+    <key>StandardOutPath</key>
+    <string>/tmp/nightcrew-stdout.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/tmp/nightcrew-stderr.log</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin</string>
+        <key>HOME</key>
+        <string>/Users/yourusername</string>
+        <key>OP_DISABLED</key>
+        <string>1</string>
+    </dict>
+
+    <key>RunAtLoad</key>
+    <false/>
+</dict>
+</plist>
+```
+
+### Interval-Based Job (e.g., every 15 minutes)
+
+```xml
+<key>StartInterval</key>
+<integer>900</integer>  <!-- 900 seconds = 15 minutes -->
+```
+
+### Keep-Alive Daemon (e.g., Telegram bridge)
+
+```xml
+<key>KeepAlive</key>
+<dict>
+    <key>SuccessfulExit</key>
+    <false/>  <!-- Restart if it exits with non-zero -->
+</dict>
+
+<key>RunAtLoad</key>
+<true/>  <!-- Start when plist is loaded -->
+
+<key>ThrottleInterval</key>
+<integer>10</integer>  <!-- Wait 10s before restarting -->
+```
+
+## Environment Variables
+
+LaunchAgents run in a minimal environment -- they do not source `.zshrc` or `.bashrc`. Every variable your scripts need must be explicitly declared.
+
+### Critical Variables
+
+| Variable | Purpose | Example |
+|----------|---------|---------|
+| `PATH` | Binary locations | `/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin` |
+| `HOME` | Home directory | `/Users/yourusername` |
+| `OP_DISABLED` | Skip 1Password CLI (no GUI session) | `1` |
+| `PYTHONPATH` | Custom Python modules | `/path/to/scripts` |
+
+### Why OP_DISABLED Matters
+
+LaunchAgents run without a GUI session. 1Password CLI requires biometric authentication through the desktop app, which is unavailable in headless contexts. Setting `OP_DISABLED=1` tells the secrets manager to fall back to environment variables or `.env` files:
+
+```python
+# secrets_manager.py fallback chain
+def get_secret(name):
+    if not os.environ.get("OP_DISABLED"):
+        try:
+            return op_read(name)  # 1Password CLI
+        except:
+            pass
+
+    # Fallback 1: environment variable
+    env_val = os.environ.get(name)
+    if env_val:
+        return env_val
+
+    # Fallback 2: .env file
+    return dotenv_get(name)
+```
+
+## Managing LaunchAgents
+
+### Loading and Unloading
+
+```bash
+# Load (activate) a LaunchAgent
+launchctl load ~/Library/LaunchAgents/com.inneros.nightcrew.plist
+
+# Unload (deactivate)
+launchctl unload ~/Library/LaunchAgents/com.inneros.nightcrew.plist
+
+# Check if loaded
+launchctl list | grep inneros
+
+# Force run now (for testing)
+launchctl start com.inneros.nightcrew
+```
+
+### Checking Status
+
+```bash
+# List all InnerOS agents
+launchctl list | grep inneros
+
+# Check a specific agent
+launchctl list com.inneros.nightcrew
+# Output:
+# {
+#     "LimitLoadToSessionType" = "Aqua";
+#     "Label" = "com.inneros.nightcrew";
+#     "LastExitStatus" = 0;
+#     "PID" = 12345;
+#     "Program" = "/usr/local/bin/python3";
+# }
+
+# LastExitStatus = 0 means success
+# PID present means currently running
+```
+
+### Viewing Logs
+
+```bash
+# stdout
+tail -50 /tmp/nightcrew-stdout.log
+
+# stderr
+tail -50 /tmp/nightcrew-stderr.log
+
+# System log (for launchd issues)
+log show --predicate 'subsystem == "com.apple.xpc.launchd"' \
+  --info --last 1h | grep inneros
+```
+
+## Common Issues and Debugging
+
+### Problem: Script runs manually but fails as LaunchAgent
+
+**Cause:** Missing environment variables.
+
+```bash
+# Debug: check what environment the agent sees
+# Add this to your script temporarily:
+import os
+with open("/tmp/agent-env-debug.txt", "w") as f:
+    for k, v in sorted(os.environ.items()):
+        f.write(f"{k}={v}\n")
+```
+
+### Problem: Agent never runs
+
+**Cause:** Plist not loaded, or syntax error.
+
+```bash
+# Validate plist syntax
+plutil -lint ~/Library/LaunchAgents/com.inneros.nightcrew.plist
+
+# Check if loaded
+launchctl list | grep nightcrew
+
+# If not listed, load it
+launchctl load ~/Library/LaunchAgents/com.inneros.nightcrew.plist
+```
+
+### Problem: Agent runs but exits immediately
+
+**Cause:** Script crashes on startup. Check stderr log.
+
+```bash
+tail -20 /tmp/nightcrew-stderr.log
+# Common: ModuleNotFoundError, FileNotFoundError, permission denied
+```
+
+### Problem: Scheduled job missed while Mac was asleep
+
+**Cause:** By default, missed calendar intervals run when the Mac wakes.
+
+```xml
+<!-- Ensure this is NOT set to prevent catch-up runs -->
+<key>StartCalendarInterval</key>
+<dict>
+    <key>Hour</key>
+    <integer>2</integer>
+    <key>Minute</key>
+    <integer>0</integer>
+</dict>
+<!-- macOS will run this at 2 AM or when the Mac next wakes after 2 AM -->
+```
+
+For Mac mini systems that are always on, this is rarely an issue.
+
+### Problem: TCC (Transparency, Consent, and Control) blocks
+
+macOS restricts access to certain directories (Documents, Photos, etc.) for non-interactive processes.
+
+```bash
+# Workaround: mirror files outside protected directories
+# Instead of reading from ~/Documents/Vault/...
+# Copy needed files to ~/Context/data/context_mirror/
+
+# For Photos.sqlite: use immutable=1 flag
+conn = sqlite3.connect(
+    f"file:{photos_db}?immutable=1",
+    uri=True
+)
+```
+
+## InnerOS LaunchAgent Registry
+
+| Agent | Schedule | Purpose | Critical |
+|-------|----------|---------|----------|
+| `nightcrew` | 2:00 AM daily | 21-stage nightly pipeline | Yes |
+| `defi-monitor` | Every 15 min | Position monitoring | No |
+| `telegram-bridge` | KeepAlive | Remote access bot | No |
+| `context-mirror` | Every 6 hours | Sync vault files for Telegram | No |
+| `health-sync` | 6:00 AM daily | Pull wearable data | No |
+| `backup` | 4:00 AM daily | Git push context repo | Yes |
+
+## Creating a New LaunchAgent
+
+```bash
+# 1. Create the plist
+cat > ~/Library/LaunchAgents/com.inneros.my-agent.plist << 'PLIST'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.inneros.my-agent</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/local/bin/python3</string>
+        <string>/path/to/my_script.py</string>
+    </array>
+    <key>StartInterval</key>
+    <integer>3600</integer>
+    <key>StandardOutPath</key>
+    <string>/tmp/my-agent-stdout.log</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/my-agent-stderr.log</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin</string>
+        <key>OP_DISABLED</key>
+        <string>1</string>
+    </dict>
+</dict>
+</plist>
+PLIST
+
+# 2. Validate
+plutil -lint ~/Library/LaunchAgents/com.inneros.my-agent.plist
+
+# 3. Load
+launchctl load ~/Library/LaunchAgents/com.inneros.my-agent.plist
+
+# 4. Test
+launchctl start com.inneros.my-agent
+
+# 5. Check logs
+tail -20 /tmp/my-agent-stdout.log
+tail -20 /tmp/my-agent-stderr.log
+```

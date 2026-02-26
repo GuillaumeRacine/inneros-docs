@@ -1,0 +1,266 @@
+# Settings
+
+InnerOS configuration is managed through a hierarchy of settings files. Higher-priority files override lower-priority ones. Understanding this hierarchy is essential for controlling agent behavior, permissions, and automation.
+
+## Settings Hierarchy
+
+```
+Priority (highest to lowest):
+
+1. .claude/settings.json           Per-project settings (in project root)
+2. ~/.claude/settings.local.json   Machine-specific overrides
+3. ~/.claude/settings.json         Global permissions and hooks
+4. ~/CLAUDE.md                     Project-level context
+5. ~/.claude/CLAUDE.md             Global context (all sessions)
+```
+
+Each level can override settings from the levels below it.
+
+## `settings.json` -- Global Settings
+
+Controls permissions and hooks for all Claude Code sessions on this machine.
+
+**Path:** `~/.claude/settings.json`
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(npm test *)",
+      "Bash(npx *)",
+      "Bash(git *)",
+      "Bash(python3 *)",
+      "Bash(gh *)",
+      "Read",
+      "Write",
+      "Edit",
+      "Glob",
+      "Grep",
+      "WebSearch",
+      "WebFetch"
+    ],
+    "deny": [
+      "Bash(rm -rf /)",
+      "Bash(rm -rf ~)",
+      "Bash(sudo *)",
+      "Bash(chmod -R 777 *)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit",
+        "script": "~/.claude/hooks/pre-edit.sh"
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "script": "~/.claude/hooks/post-bash.sh"
+      }
+    ],
+    "Stop": [
+      {
+        "script": "~/.claude/hooks/stop-check.sh"
+      }
+    ]
+  }
+}
+```
+
+### Permission Patterns
+
+Permissions use glob matching for Bash commands:
+
+| Pattern | Matches | Example |
+|---------|---------|---------|
+| `Bash(git *)` | Any git command | `git status`, `git push` |
+| `Bash(npm run *)` | npm run scripts | `npm run dev`, `npm run build` |
+| `Bash(python3 *)` | Python execution | `python3 script.py --arg` |
+| `Read` | All file reads | No arguments needed |
+| `Edit` | All file edits | No arguments needed |
+
+### Permission Rules
+
+- **Allow list** -- Commands matching these patterns run without asking
+- **Deny list** -- Commands matching these patterns are always blocked
+- **Unlisted commands** -- Claude Code prompts the user for approval
+- **Deny overrides allow** -- If a command matches both, it is denied
+
+## `settings.local.json` -- Machine Overrides
+
+Machine-specific settings that override global settings. This file is NOT synced between devices (not in the vault, not in git).
+
+**Path:** `~/.claude/settings.local.json`
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "Bash(brew *)",
+      "Bash(launchctl *)",
+      "Bash(open *)"
+    ]
+  }
+}
+```
+
+Use this for:
+- Machine-specific tools (Homebrew on Mac, apt on Linux)
+- Development environment differences
+- Temporary permission grants during specific work
+
+## Per-Project Settings
+
+Each project can have its own settings that apply when Claude Code runs in that directory.
+
+**Path:** `<project-root>/.claude/settings.json`
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "Bash(docker *)",
+      "Bash(make *)"
+    ]
+  }
+}
+```
+
+Project settings merge with global settings. They can add permissions but generally should not revoke global ones.
+
+## `CLAUDE.md` -- Context Files
+
+CLAUDE.md files are not JSON settings but markdown context files read by Claude Code at session start. They provide instructions, context, and behavioral guidance.
+
+### Hierarchy
+
+| File | Scope | When Read | Purpose |
+|------|-------|-----------|---------|
+| `~/.claude/CLAUDE.md` | All sessions everywhere | Every session start | Global instructions, agent protocol, operating principles |
+| `~/CLAUDE.md` | Home directory sessions | When cwd is `~` | Environment context, available tools, vault structure |
+| `<project>/CLAUDE.md` | Project-specific | When cwd is the project | Project rules, tech stack, conventions, testing |
+
+### What Goes Where
+
+**Global `~/.claude/CLAUDE.md`:**
+- Agent operating protocol (iteration bounds, completion promises)
+- Validation requirements (always run tests, always type-check)
+- Safety guardrails (never push to main, never self-determine completion)
+- Task management conventions (todo.md usage)
+- Git commit/push rules
+
+**Home `~/CLAUDE.md`:**
+- System information (OS, tools, paths)
+- Vault structure and PARA layout
+- Available commands and skills inventory
+- Data source locations
+- Coaching system overview
+
+**Project `<project>/CLAUDE.md`:**
+- Tech stack and framework details
+- Testing commands and conventions
+- Build and deployment procedures
+- Code style guidelines
+- PR template requirements
+
+### Writing Effective CLAUDE.md
+
+1. **Be specific** -- "Run `npm test` after changes" not "validate your work"
+2. **Use tables** -- Claude Code parses tables efficiently
+3. **Include paths** -- Always use absolute paths
+4. **Prioritize** -- Put the most important instructions first
+5. **Keep it current** -- Stale context is worse than no context
+
+## Hook Configuration
+
+Hooks execute shell scripts before or after Claude Code tool calls. They are configured in `settings.json`.
+
+### Hook Types
+
+| Type | When | Exit 0 | Exit non-0 |
+|------|------|--------|-----------|
+| `PreToolUse` | Before tool runs | Allow tool | Block tool |
+| `PostToolUse` | After tool completes | Continue | Log warning |
+| `Stop` | Agent tries to stop | Allow stop | Block stop, re-invoke |
+
+### Hook Configuration Format
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "script": "~/.claude/hooks/pre-bash.sh"
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "script": "~/.claude/hooks/audit-log.sh"
+      }
+    ],
+    "Stop": [
+      {
+        "script": "~/.claude/hooks/completion-check.sh"
+      }
+    ]
+  }
+}
+```
+
+### Matcher Values
+
+| Matcher | Triggers On |
+|---------|-------------|
+| `"Bash"` | Any Bash command |
+| `"Edit"` | File edits |
+| `"Write"` | File creation |
+| `"Read"` | File reads |
+| `"*"` | Any tool |
+
+See [Hooks](/skills-commands/hooks) for detailed hook documentation and examples.
+
+## Bypass Mode
+
+For trusted environments (personal machine, sandboxed environments), you can skip permission prompts:
+
+```bash
+# Per-session
+claude --dangerously-skip-permissions
+
+# Permanent for a directory
+claude config set bypassPermissions true
+```
+
+**Warning:** This allows Claude Code to execute any command without confirmation. Only use in environments where you trust the agent fully and have backups.
+
+## Configuration Checklist
+
+When setting up InnerOS on a new machine:
+
+- [ ] Copy `settings.json` from vault to `~/.claude/settings.json`
+- [ ] Create `settings.local.json` with machine-specific permissions
+- [ ] Copy `CLAUDE.md` from vault to `~/.claude/CLAUDE.md`
+- [ ] Create `~/CLAUDE.md` with environment-specific details
+- [ ] Set up symlinks for agents, commands, hooks, scripts, skills
+- [ ] Verify hooks are executable (`chmod +x ~/.claude/hooks/*.sh`)
+- [ ] Test with `claude --version` and a simple command
+
+## Key Configuration Decisions
+
+| Setting | Recommendation | Why |
+|---------|---------------|-----|
+| Bypass permissions | Off for shared machines, on for personal | Safety vs. speed tradeoff |
+| PreToolUse hooks | Enable for Bash and Edit | Prevent dangerous operations |
+| PostToolUse hooks | Enable for Edit | Auto-validate after changes |
+| Stop hooks | Enable for autonomous work | Prevent premature completion |
+| Global CLAUDE.md | Include full agent protocol | Consistent autonomous behavior |
+| Project CLAUDE.md | Include project-specific details | Agents understand the environment |
+
+## Next Steps
+
+- [Hooks](/skills-commands/hooks) -- Detailed hook system documentation
+- [File Paths](/reference/file-paths) -- Where everything lives on disk

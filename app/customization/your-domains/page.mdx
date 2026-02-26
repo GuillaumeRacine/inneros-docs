@@ -1,0 +1,253 @@
+# Your Domains
+
+Life domains are the organizing principle of InnerOS. Each domain represents an ongoing area of responsibility that requires regular attention, tracking, and workflows. Domains map directly to PARA "Areas" and serve as the routing layer for agents, workflows, and data.
+
+## What Is a Domain?
+
+A domain is a life area that:
+- Has **ongoing** responsibilities (not time-bound like projects)
+- Requires **regular attention** (daily, weekly, or monthly)
+- Has **measurable outcomes** (you can tell if it is going well or not)
+- Benefits from **dedicated tools and agents**
+
+Examples: Health, Finance, Family, Career, Creative pursuits, Learning.
+
+Non-examples: "Be happy" (too vague), "Fix the leaky faucet" (that is a project).
+
+## Defining Your Domains
+
+### Step 1: List Your Life Areas
+
+Write down everything you are responsible for or care about maintaining:
+
+```markdown
+## My Life Areas (Brain Dump)
+- Physical health and fitness
+- Mental health and ADHD management
+- Partner relationship
+- Parenting
+- Extended family
+- Career / day job
+- Side projects / building
+- Personal finances
+- Investments / DeFi
+- Writing and publishing
+- Music
+- Learning / courses
+- Home maintenance
+- Social life
+- Spirituality / philosophy
+```
+
+### Step 2: Consolidate to 7-12 Domains
+
+Too many domains create overhead. Too few create blind spots. Aim for 7-12:
+
+```markdown
+## My Domains (Consolidated)
+
+1. Health (physical + mental + ADHD)
+2. Family (partner + child + extended)
+3. Finance (personal + investments + DeFi)
+4. Career (day job + side projects)
+5. Creative (writing + music)
+6. Learning (courses + reading + research)
+7. Home (maintenance + projects)
+8. Relationships (social + community)
+9. Personal Growth (philosophy + coaching)
+```
+
+### Step 3: Define Each Domain
+
+For each domain, document:
+
+```markdown
+## Domain: Health
+
+### Scope
+Physical fitness, mental health, ADHD management, sleep,
+nutrition, medication adherence.
+
+### Current State (1-10): 7
+Workouts consistent. Sleep needs improvement. ADHD managed
+with medication + systems.
+
+### Key Metrics
+| Metric | Target | Current | Source |
+|--------|--------|---------|--------|
+| Sleep score | >80 | 76 | Oura |
+| Workout days/week | 5 | 4.2 | Apple Watch |
+| HRV | >45ms | 42ms | WHOOP |
+| Medication adherence | 100% | ~90% | Manual log |
+
+### Workflows
+- Daily: Morning health check, medication reminder
+- Weekly: Health trend review (part of weekly review)
+- Monthly: Health trend analysis
+- Quarterly: Doctor check-in prep
+
+### Agents
+- health-monitor: Aggregates wearable data
+- adhd-coach: Executive function support (maps to Body coach)
+- medication-tracker: Adherence monitoring
+
+### PARA Location
+2_Areas/Health/
+```
+
+## Mapping Domains to PARA
+
+Each domain gets a folder in `2_Areas/`:
+
+```
+2_Areas/
+├── Health/
+│   ├── _workflows.md           # Domain workflow definitions
+│   ├── metrics.md              # Current health metrics
+│   ├── medication_log.md       # Medication tracking
+│   └── workout_plan.md         # Current workout program
+├── Finance/
+│   ├── _workflows.md
+│   ├── portfolio.md
+│   ├── budget.md
+│   └── DeFi/
+│       ├── positions.md
+│       └── strategies.md
+├── Family/
+│   ├── _workflows.md
+│   ├── schedules.md
+│   └── Therapy/
+├── Career/
+│   ├── _workflows.md
+│   ├── goals.md
+│   └── Projects/              # Active work projects
+├── Creative/
+│   ├── Writing/
+│   │   ├── _workflows.md
+│   │   ├── Drafts/
+│   │   └── Published/
+│   └── Music/
+│       ├── _workflows.md
+│       ├── practice_log.md
+│       └── Projects/
+├── Learning/
+│   ├── _workflows.md
+│   ├── reading_list.md
+│   └── Courses/
+├── Home/
+│   ├── _workflows.md
+│   ├── maintenance_schedule.md
+│   └── Projects/
+└── Relationships/
+    ├── _workflows.md
+    └── contact_cadence.md
+```
+
+### The _workflows.md Convention
+
+Every domain folder contains a `_workflows.md` file that documents the workflows specific to that domain:
+
+```markdown
+# Finance Workflows
+
+## Daily
+- [ ] Check DeFi positions (automated, 15-min interval)
+- [ ] Record any expenses > $50
+
+## Weekly
+- [ ] Portfolio review (/portfolio-snapshot)
+- [ ] DeFi yield check (/dn)
+- [ ] Review pending transactions
+
+## Monthly
+- [ ] Full financial review (allocation, spending, P&L)
+- [ ] Budget vs. actual analysis
+- [ ] Rebalancing assessment
+
+## Quarterly
+- [ ] Tax-relevant transaction review
+- [ ] Strategic allocation review
+- [ ] Update financial goals
+```
+
+## Domain Scoring
+
+Every quarter, each domain gets a score from 1-10. This simple practice prevents "domain neglect" -- where one area (usually work) consumes attention at the expense of others.
+
+### Scoring Rubric
+
+| Score | Meaning |
+|-------|---------|
+| 9-10 | Thriving. Exceeding expectations. |
+| 7-8 | Healthy. Meeting most targets. |
+| 5-6 | Adequate. Functioning but needs attention. |
+| 3-4 | Struggling. Below acceptable level. |
+| 1-2 | Crisis. Requires immediate intervention. |
+
+### Tracking Over Time
+
+```markdown
+## Domain Scores (Rolling Quarters)
+
+| Domain | Q3 | Q4 | Q1 | Trend |
+|--------|----|----|----| ------|
+| Health | 6 | 7 | 7 | → |
+| Family | 7 | 8 | 8 | → |
+| Finance | 5 | 6 | 7 | ↗ |
+| Career | 6 | 7 | 7 | → |
+| Creative | 4 | 4 | 3 | ↘ |  ← Flag this
+| Learning | 5 | 6 | 6 | → |
+```
+
+Any domain trending down for 2+ quarters triggers an explicit review. The quarterly life domain audit (see [Quarterly Workflows](/workflows/quarterly)) uses this data.
+
+## Adding and Removing Domains
+
+### Adding a Domain
+
+When a new life area becomes significant enough to track:
+
+```bash
+# 1. Create the Area folder
+mkdir -p ~/Obs_Vault/2_Areas/NewDomain/
+
+# 2. Create _workflows.md
+cat > ~/Obs_Vault/2_Areas/NewDomain/_workflows.md << 'EOF'
+# NewDomain Workflows
+## Daily
+## Weekly
+## Monthly
+EOF
+
+# 3. Add to master_context.md under Life Domains
+# 4. Create domain-specific context file (optional)
+# 5. Build agents if needed
+# 6. Add to quarterly scoring
+```
+
+### Retiring a Domain
+
+When a domain is no longer active:
+
+```bash
+# 1. Move folder to archives
+mv ~/Obs_Vault/2_Areas/OldDomain/ ~/Obs_Vault/4_Archives/Areas/OldDomain/
+
+# 2. Remove from master_context.md
+# 3. Disable associated agents and workflows
+# 4. Remove from quarterly scoring
+# 5. Keep data for historical reference
+```
+
+## Common Domain Configurations
+
+| Life Stage | Typical Domains |
+|------------|----------------|
+| Student | Learning, Health, Social, Finance, Career Prep |
+| Early career | Career, Finance, Health, Relationships, Learning |
+| Parent | Family, Health, Career, Finance, Home |
+| Entrepreneur | Business, Finance, Health, Family, Learning |
+| Creative | Creative Work, Career, Health, Finance, Community |
+| Retiree | Health, Family, Creative, Community, Legacy |
+
+Your domains should reflect **your actual life**, not a template. Start with what demands your attention right now.

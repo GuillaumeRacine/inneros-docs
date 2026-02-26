@@ -1,0 +1,163 @@
+# Writing Pipeline
+
+InnerOS includes a **13-stage writing pipeline** built from specialized agents. Each stage has a single responsibility, clear inputs and outputs, and hands off structured data to the next stage. The pipeline transforms a topic or brief into a published, archived, indexed piece of content.
+
+## Pipeline Overview
+
+```
+00 Orchestrator ---- manages the full flow
+ |
+ +-- 01 Researcher ---------- gather sources and raw material
+ +-- 02 Synthesizer --------- extract patterns and connections
+ +-- 03 Narrative Architect -- design story structure and arc
+ +-- 04 Outline Strategist --- plan sections and flow
+ +-- 05 Structural Editor ---- optimize structure and transitions
+ +-- 06 Drafting ------------- write the first draft
+ +-- 07 Challenger ----------- devil's advocate review
+ +-- 08 Fact Checker --------- verify claims and data
+ +-- 09 Style Compression ---- polish voice, tighten prose
+ +-- 10 Distribution --------- publish and format for platforms
+ +-- 11 Canon Indexer -------- archive and index permanently
+ +-- 12 Notes Agent ---------- capture context throughout
+```
+
+## Stage Summary
+
+| Stage | Agent | Input | Output | Duration |
+|-------|-------|-------|--------|----------|
+| 00 | Orchestrator | Topic or brief | Pipeline coordination | Ongoing |
+| 01 | Researcher | Topic, questions | Source collection (10-30 sources) | 15-30 min |
+| 02 | Synthesizer | Raw sources | Patterns, themes, key insights | 10-20 min |
+| 03 | Narrative Architect | Themes | Story arc, emotional journey | 10-15 min |
+| 04 | Outline Strategist | Arc | Section-by-section outline | 10-15 min |
+| 05 | Structural Editor | Outline | Optimized structure, transitions | 10-15 min |
+| 06 | Drafting | Structure + sources | First draft (1500-3000 words) | 20-30 min |
+| 07 | Challenger | Draft | Critique, weak points, counterarguments | 10-15 min |
+| 08 | Fact Checker | Draft + sources | Verified draft, flagged claims | 10-20 min |
+| 09 | Style Compression | Verified draft | Polished final (voice, density) | 10-15 min |
+| 10 | Distribution | Final draft | Published content + platform formatting | 5-10 min |
+| 11 | Canon Indexer | Published content | Archived, indexed, cross-linked | 5-10 min |
+| 12 | Notes Agent | Any stage | Running notes, decisions, alternatives | Ongoing |
+
+**Total pipeline time:** 2-4 hours for a long-form piece, depending on research depth.
+
+## How It Works
+
+### The Orchestrator (Stage 00)
+
+The Orchestrator is the editor-in-chief. It does not write -- it manages the flow:
+
+- Receives the initial topic or brief
+- Routes through stages in order (or skips stages when appropriate)
+- Passes structured output from one stage to the next
+- Tracks pipeline state and progress
+- Can loop back to earlier stages if later stages reveal issues
+
+### Research Phase (Stages 01-02)
+
+**Researcher** gathers raw material: web sources, vault references, academic papers, existing notes. Output is a structured source collection with summaries and relevance scores.
+
+**Synthesizer** processes the raw sources to extract patterns, recurring themes, contradictions, and key insights. This is where the "so what" emerges from the "what."
+
+### Structure Phase (Stages 03-05)
+
+**Narrative Architect** designs the story arc -- not just the logical structure, but the emotional journey. What does the reader feel at each stage? Where is the tension? Where is the resolution?
+
+**Outline Strategist** converts the arc into a concrete section outline with headers, key points per section, and estimated word counts.
+
+**Structural Editor** optimizes the outline for flow, transitions, and pacing. Removes redundancy. Ensures each section earns its place.
+
+### Writing Phase (Stage 06)
+
+**Drafting** produces the first draft from the structure and sources. This is the only stage that generates long-form prose. It follows the outline strictly but brings voice, examples, and narrative techniques.
+
+### Quality Phase (Stages 07-09)
+
+**Challenger** plays devil's advocate. It identifies weak arguments, unsupported claims, logical gaps, and areas where the reader might disengage. This is adversarial by design.
+
+**Fact Checker** verifies every factual claim against the source collection. It flags claims without sources, outdated data, and common misconceptions.
+
+**Style Compression** is the final polish. It applies voice guidelines, removes filler words, tightens sentences, improves opening hooks, and ensures the piece reads like a specific person wrote it, not a committee.
+
+### Post-Writing Phase (Stages 10-12)
+
+**Distribution** handles platform-specific formatting (newsletter, blog, social), metadata, images, and publishing mechanics.
+
+**Canon Indexer** archives the published piece permanently: adds it to the content index, creates cross-references, updates topic tags, and logs publication metadata.
+
+**Notes Agent** runs throughout the pipeline, capturing decisions, alternatives considered, and context that might be useful for future writing.
+
+## Using the Pipeline
+
+### Full Pipeline
+
+Start with the Orchestrator and provide your topic:
+
+```
+Load the Orchestrator agent, then:
+
+"Write a long-form piece about [topic]. Target audience is [audience].
+Key angle: [what makes this piece different]. Target length: 2000 words."
+```
+
+The Orchestrator routes through all stages automatically.
+
+### Partial Pipeline
+
+You can invoke individual stages when you only need part of the process:
+
+```
+# Just research a topic
+Load the Researcher agent:
+"Gather 15-20 sources on [topic], focus on [angle]"
+
+# Just challenge an existing draft
+Load the Challenger agent:
+"Review this draft and find every weak point: [paste or link draft]"
+
+# Just compress and polish
+Load the Style Compression agent:
+"Tighten this draft. Remove filler. Sharpen the voice: [paste draft]"
+```
+
+### Skip Stages
+
+Not every piece needs every stage. The Orchestrator can skip stages:
+
+| Content Type | Skip Stages |
+|-------------|-------------|
+| Quick blog post | Skip 03 (Narrative), 05 (Structural Editor) |
+| Research report | Skip 03 (Narrative), 09 (Style Compression) |
+| Newsletter issue | Skip 01-02 (already have sources), 07 (Challenger) |
+| Social thread | Skip 01-05, use 06 + 09 only |
+
+## Quality Tracking
+
+The pipeline includes a quality scoring rubric applied after Stage 09:
+
+| Dimension | Weight | Criteria |
+|-----------|--------|----------|
+| Clarity | 25% | Can a smart 16-year-old understand it? |
+| Originality | 20% | Does it say something new or in a new way? |
+| Evidence | 20% | Are claims supported with specific data/examples? |
+| Engagement | 20% | Would you keep reading after the first paragraph? |
+| Voice | 15% | Does it sound like a human with a perspective? |
+
+Quality scores are logged in `Workflows/Writing/Logs/quality_metrics.md` for tracking improvement over time.
+
+## Pipeline Files
+
+Agent files live in:
+```
+~/Obs_Vault/0_InnerContext/Workflows/Writing/Agents/
+  00_orchestrator.md
+  01_researcher.md
+  02_synthesizer.md
+  ...
+  12_notes_agent.md
+```
+
+## Next Steps
+
+- [Stage Details](/writing-pipeline/stages) -- Deep dive into each stage agent
+- [Customizing](/writing-pipeline/customizing) -- Adapt the pipeline for your content type

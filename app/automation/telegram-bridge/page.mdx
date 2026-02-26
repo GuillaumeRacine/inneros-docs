@@ -1,0 +1,307 @@
+# Telegram Bridge
+
+The Telegram Bridge gives InnerOS a mobile interface. It connects a private Telegram bot to Claude Code's agent infrastructure, allowing the user to trigger skills, query data, and receive updates from anywhere -- all through a chat interface.
+
+## Architecture
+
+```
+┌──────────────┐     ┌─────────────────┐     ┌──────────────────┐
+│  Telegram     │     │  Bridge Script   │     │  Claude Code     │
+│  (mobile app) │◄───►│  (Python daemon) │◄───►│  (local machine) │
+│               │     │                  │     │                  │
+│  Send: /focus │────►│  Parse command   │────►│  Execute skill   │
+│  Recv: result │◄────│  Format response │◄────│  Return output   │
+└──────────────┘     └────────┬─────────┘     └──────────────────┘
+                              │
+                     ┌────────┴─────────┐
+                     │  Context Mirror   │
+                     │  (file copies)    │
+                     │  ~/Context/data/  │
+                     └──────────────────┘
+```
+
+## Components
+
+### 1. Bridge Script (Main Daemon)
+
+A Python script that runs as a KeepAlive LaunchAgent, listening for Telegram messages and routing them to the appropriate handler.
+
+```python
+# telegram_claude_bridge.py (simplified)
+from telegram.ext import Application, CommandHandler, MessageHandler
+
+async def handle_command(update, context):
+    command = update.message.text
+    user_id = update.effective_user.id
+
+    # Security: only respond to authorized user
+    if user_id != AUTHORIZED_USER_ID:
+        return
+
+    # Route to skill handler
+    if command.startswith("/"):
+        result = await execute_skill(command)
+    else:
+        result = await handle_freeform(command)
+
+    await update.message.reply_text(result, parse_mode="Markdown")
+
+def main():
+    app = Application.builder().token(BOT_TOKEN).build()
+    app.add_handler(CommandHandler("focus", handle_focus))
+    app.add_handler(CommandHandler("dn", handle_defi))
+    app.add_handler(CommandHandler("status", handle_status))
+    app.add_handler(CommandHandler("brief", handle_brief))
+    app.add_handler(MessageHandler(filters.TEXT, handle_freeform))
+    app.run_polling()
+```
+
+### 2. Skills Layer
+
+Maps Telegram commands to local InnerOS skills:
+
+```python
+# telegram_utils.py (simplified)
+SKILL_MAP = {
+    "/focus": {
+        "handler": "focus_check",
+        "description": "ADHD focus check-in",
+        "requires_context": ["master_context", "daily_structure"],
+    },
+    "/dn": {
+        "handler": "defi_dashboard",
+        "description": "DeFi position snapshot",
+        "requires_context": ["defi_positions"],
+    },
+    "/brief": {
+        "handler": "morning_brief",
+        "description": "Today's morning brief",
+        "requires_context": ["morning_brief"],
+    },
+    "/status": {
+        "handler": "system_status",
+        "description": "InnerOS system health",
+        "requires_context": [],
+    },
+    "/remind": {
+        "handler": "create_reminder",
+        "description": "Create a new reminder",
+        "requires_context": [],
+    },
+    "/note": {
+        "handler": "quick_capture",
+        "description": "Capture a quick note to inbox",
+        "requires_context": [],
+    },
+}
+
+async def execute_skill(command):
+    skill_name = command.split()[0]
+    args = command[len(skill_name):].strip()
+
+    skill = SKILL_MAP.get(skill_name)
+    if not skill:
+        return f"Unknown command: {skill_name}\nAvailable: {list(SKILL_MAP.keys())}"
+
+    context_files = load_context(skill["requires_context"])
+    result = await globals()[skill["handler"]](args, context_files)
+    return format_for_telegram(result)
+```
+
+### 3. Context Mirror
+
+The bridge cannot directly access files inside macOS TCC-protected directories (like `~/Documents/`). A context mirror copies essential files to an accessible location.
+
+```python
+# Context mirror structure
+MIRROR_CONFIG = {
+    "source_dir": "~/Obs_Vault/",
+    "mirror_dir": "~/Context/data/context_mirror/",
+    "files": [
+        "0_InnerContext/Self_Context/llm_instructions.md",
+        "0_InnerContext/Self_Context/master_context.md",
+        "0_InnerContext/Auto Updates/daily_insights.md",
+        "0_InnerContext/Auto Updates/morning_brief_latest.md",
+    ],
+    "sync_on_startup": True,
+    "sync_interval_hours": 6,
+}
+
+def mirror_context():
+    for rel_path in MIRROR_CONFIG["files"]:
+        src = os.path.expanduser(f"{MIRROR_CONFIG['source_dir']}/{rel_path}")
+        dst = os.path.expanduser(f"{MIRROR_CONFIG['mirror_dir']}/{rel_path}")
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
+        shutil.copy2(src, dst)
+```
+
+**Why not symlinks?** Symlinks into TCC-protected directories inherit the TCC restriction. Only actual file copies work from LaunchAgent contexts.
+
+## Available Telegram Commands
+
+| Command | Description | Response Time |
+|---------|-------------|--------------|
+| `/focus` | ADHD focus check-in with priorities | 3-5 seconds |
+| `/dn` | DeFi position dashboard | 5-10 seconds |
+| `/brief` | Today's morning brief | 2-3 seconds |
+| `/status` | System health (NightCrew, agents) | 2-3 seconds |
+| `/remind [text]` | Create a new reminder | 1-2 seconds |
+| `/note [text]` | Quick capture to vault inbox | 1-2 seconds |
+| `/calendar` | Today's schedule | 3-5 seconds |
+| `/health` | Latest health metrics | 3-5 seconds |
+| (freeform text) | General question to agent | 5-15 seconds |
+
+## Security Model
+
+The bridge implements multiple security layers:
+
+```python
+# 1. User allowlist (Telegram user ID)
+AUTHORIZED_USERS = {123456789}  # Only your Telegram ID
+
+# 2. Bot token stored securely
+BOT_TOKEN = get_secret("TELEGRAM_BOT_TOKEN")
+# Fallback: .env file (for LaunchAgent context)
+
+# 3. No sensitive data in responses
+def sanitize_response(text):
+    """Remove any accidentally included PII or secrets"""
+    patterns = [
+        r'\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b',  # card numbers
+        r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b',  # emails
+        r'0x[a-fA-F0-9]{40}',  # wallet addresses
+    ]
+    for pattern in patterns:
+        text = re.sub(pattern, "[REDACTED]", text)
+    return text
+
+# 4. Rate limiting
+RATE_LIMIT = 30  # max messages per minute
+```
+
+## Setup Guide
+
+### 1. Create a Telegram Bot
+
+```
+1. Open Telegram, search for @BotFather
+2. Send /newbot
+3. Choose a name (e.g., "My InnerOS Bot")
+4. Choose a username (e.g., "my_inneros_bot")
+5. Save the bot token
+```
+
+### 2. Get Your Telegram User ID
+
+```
+1. Search for @userinfobot on Telegram
+2. Send /start
+3. Note your user ID (numeric)
+```
+
+### 3. Configure Credentials
+
+```bash
+# Store in .env file (for LaunchAgent compatibility)
+cat > ~/Context/scripts/.env << 'EOF'
+TELEGRAM_BOT_TOKEN=your_bot_token_here
+TELEGRAM_USER_ID=your_user_id_here
+OPENAI_API_KEY=your_api_key_here
+EOF
+
+chmod 600 ~/Context/scripts/.env
+```
+
+### 4. Install Dependencies
+
+```bash
+pip3 install python-telegram-bot openai
+```
+
+### 5. Create LaunchAgent
+
+```xml
+<!-- ~/Library/LaunchAgents/com.inneros.telegram-bridge.plist -->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.inneros.telegram-bridge</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/local/bin/python3</string>
+        <string>/path/to/telegram_claude_bridge.py</string>
+    </array>
+    <key>KeepAlive</key>
+    <dict>
+        <key>SuccessfulExit</key>
+        <false/>
+    </dict>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin</string>
+        <key>OP_DISABLED</key>
+        <string>1</string>
+    </dict>
+</dict>
+</plist>
+```
+
+### 6. Load and Test
+
+```bash
+# Load the agent
+launchctl load ~/Library/LaunchAgents/com.inneros.telegram-bridge.plist
+
+# Send /status from Telegram
+# You should receive a response within 5 seconds
+
+# Check logs if no response
+tail -20 /tmp/telegram-bridge-stderr.log
+```
+
+## Extending the Bridge
+
+### Adding a New Command
+
+```python
+# 1. Define the handler
+async def handle_weather(args, context):
+    """Get weather for configured location"""
+    weather = await fetch_weather(context.get("location", "default"))
+    return f"Current: {weather.temp}F, {weather.condition}\n" \
+           f"Today: {weather.high}F / {weather.low}F"
+
+# 2. Register in SKILL_MAP
+SKILL_MAP["/weather"] = {
+    "handler": "handle_weather",
+    "description": "Current weather",
+    "requires_context": ["location"],
+}
+
+# 3. Add command handler in main()
+app.add_handler(CommandHandler("weather", handle_weather))
+```
+
+### Adding Proactive Notifications
+
+The bridge can also send messages without being prompted:
+
+```python
+async def send_proactive_alert(bot, message):
+    """Send alert to authorized user"""
+    await bot.send_message(
+        chat_id=AUTHORIZED_USER_ID,
+        text=message,
+        parse_mode="Markdown"
+    )
+
+# Example: DeFi position alert
+if position_change > ALERT_THRESHOLD:
+    await send_proactive_alert(
+        bot,
+        f"DeFi Alert: Position dropped {position_change}% in 1 hour"
+    )
+```

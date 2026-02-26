@@ -1,0 +1,371 @@
+# Integration Patterns
+
+Every InnerOS data source follows the same structural pattern. This guide shows you how to add a new data source from scratch, covering the script template, credential management, scheduling, and vault integration.
+
+## The Standard Pattern
+
+Every data integration has four components:
+
+```
+1. Script        -- Python file that fetches and transforms data
+2. Credentials   -- API keys / tokens managed via secrets_manager
+3. Schedule      -- LaunchAgent plist for automated runs (optional)
+4. Vault output  -- Structured markdown written to a standard path
+```
+
+## Step 1: Write the Script
+
+Create a new Python file in the scripts directory:
+
+```python
+#!/usr/bin/env python3
+"""
+Data source: Service Name
+Fetches data from ServiceName and writes structured markdown to the vault.
+"""
+
+import json
+import sys
+from datetime import datetime, timedelta
+from pathlib import Path
+
+# Import the shared secrets manager
+sys.path.insert(0, str(Path(__file__).parent))
+from secrets_manager import get_secret
+
+# Configuration
+VAULT_PATH = Path.home() / "Obs_Vault"
+OUTPUT_DIR = VAULT_PATH / "0_InnerContext" / "Tracking" / "Data"
+STATE_FILE = OUTPUT_DIR / "service_name_state.json"
+
+
+def fetch_data(days_back: int = 7) -> dict:
+    """Fetch data from the external source."""
+    api_key = get_secret("SERVICE_API_KEY")
+
+    # Your API call here
+    import requests
+    response = requests.get(
+        "https://api.service.com/data",
+        headers={"Authorization": f"Bearer {api_key}"},
+        params={
+            "start": (datetime.now() - timedelta(days=days_back)).isoformat(),
+            "end": datetime.now().isoformat()
+        }
+    )
+    response.raise_for_status()
+    return response.json()
+
+
+def transform(raw_data: dict) -> str:
+    """Transform raw API response to structured markdown."""
+    lines = [
+        f"# Service Name Data",
+        f"",
+        f"*Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}*",
+        f"",
+        f"## Summary",
+        f"",
+    ]
+
+    # Transform your data into markdown sections
+    for item in raw_data.get("items", []):
+        lines.append(f"- **{item['name']}**: {item['value']}")
+
+    return "\n".join(lines)
+
+
+def save_state(state: dict):
+    """Persist state between runs (last fetch time, cursor, etc.)."""
+    STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+    STATE_FILE.write_text(json.dumps(state, indent=2))
+
+
+def load_state() -> dict:
+    """Load state from previous run."""
+    if STATE_FILE.exists():
+        return json.loads(STATE_FILE.read_text())
+    return {}
+
+
+def main():
+    print(f"Fetching data from Service Name...")
+
+    try:
+        raw = fetch_data()
+        markdown = transform(raw)
+
+        output_file = OUTPUT_DIR / "service_name_latest.md"
+        output_file.write_text(markdown)
+
+        save_state({
+            "last_fetch": datetime.now().isoformat(),
+            "record_count": len(raw.get("items", []))
+        })
+
+        print(f"Success: wrote {output_file}")
+        return 0
+
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
+```
+
+### Script Design Rules
+
+| Rule | Why |
+|------|-----|
+| **Single responsibility** | One script fetches from one source |
+| **Graceful failure** | Return non-zero exit code on error, print to stderr |
+| **Idempotent** | Safe to run multiple times; overwrites output, does not duplicate |
+| **State persistence** | Use `_state.json` for cursors, last-fetch timestamps |
+| **Structured output** | Always write markdown with headers, tables, and consistent formatting |
+| **No secrets in code** | Use `secrets_manager.get_secret()` for all credentials |
+
+## Step 2: Set Up Credentials
+
+### Using 1Password (Preferred)
+
+```bash
+# Create an item in the "Agents" vault
+op item create \
+  --vault "Agents" \
+  --category "API Credential" \
+  --title "ServiceName" \
+  --fields "api-key=your_key_here"
+```
+
+Your script accesses it via:
+
+```python
+from secrets_manager import get_secret
+api_key = get_secret("SERVICE_API_KEY")
+```
+
+### Using Environment Variables (Fallback)
+
+Add to `~/.secrets`:
+
+```bash
+export SERVICE_API_KEY="your_key_here"
+```
+
+Ensure the file has restricted permissions:
+
+```bash
+chmod 600 ~/.secrets
+```
+
+### Using .env Files (Last Resort)
+
+Create a `.env` in the scripts directory:
+
+```
+SERVICE_API_KEY=your_key_here
+```
+
+### The Fallback Chain
+
+The `secrets_manager.py` module resolves credentials in this order:
+
+```python
+def get_secret(key: str) -> str:
+    """Try 1Password, then env var, then .env file."""
+
+    # 1. Try 1Password (if not disabled)
+    if not os.environ.get("OP_DISABLED"):
+        try:
+            result = subprocess.run(
+                ["op", "read", f"op://Agents/{key}/credential"],
+                capture_output=True, text=True, timeout=5
+            )
+            if result.returncode == 0:
+                return result.stdout.strip()
+        except (subprocess.TimeoutExpired, FileNotFoundError):
+            pass
+
+    # 2. Try environment variable
+    value = os.environ.get(key)
+    if value:
+        return value
+
+    # 3. Try .env file
+    env_file = Path(__file__).parent / ".env"
+    if env_file.exists():
+        for line in env_file.read_text().splitlines():
+            if line.startswith(f"{key}="):
+                return line.split("=", 1)[1].strip()
+
+    raise ValueError(f"Secret not found: {key}")
+```
+
+## Step 3: Register with Weekly Fetcher
+
+Add your source to the weekly data fetcher configuration:
+
+```python
+# In weekly_data_fetcher.py
+
+DATA_SOURCES = [
+    # ... existing sources ...
+    {
+        "name": "Service Name",
+        "script": "service_name_fetcher.py",
+        "section_header": "## Service Name",
+        "enabled": True,
+    },
+]
+```
+
+The weekly fetcher calls each script, captures its output, and assembles the combined weekly data file.
+
+## Step 4: Schedule with LaunchAgent (Optional)
+
+For sources that need regular automated fetching, create a LaunchAgent plist:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.inneros.service-name-fetch</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/bin/python3</string>
+        <string>/path/to/scripts/service_name_fetcher.py</string>
+    </array>
+
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>3</integer>
+        <key>Minute</key>
+        <integer>0</integer>
+    </dict>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>OP_DISABLED</key>
+        <string>1</string>
+        <key>PATH</key>
+        <string>/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin</string>
+    </dict>
+
+    <key>StandardOutPath</key>
+    <string>/tmp/service-name-fetch.log</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/service-name-fetch.err</string>
+</dict>
+</plist>
+```
+
+Install and load:
+
+```bash
+cp com.inneros.service-name-fetch.plist ~/Library/LaunchAgents/
+launchctl load ~/Library/LaunchAgents/com.inneros.service-name-fetch.plist
+```
+
+**Key:** Always set `OP_DISABLED=1` in LaunchAgent plists because they cannot access 1Password (no GUI session for biometric unlock).
+
+## Step 5: Test
+
+```bash
+# Run the script manually
+python3 service_name_fetcher.py
+
+# Verify output
+cat ~/Obs_Vault/0_InnerContext/Tracking/Data/service_name_latest.md
+
+# Verify state was saved
+cat ~/Obs_Vault/0_InnerContext/Tracking/Data/service_name_state.json
+
+# Run the weekly fetcher to verify integration
+python3 weekly_data_fetcher.py --source "Service Name"
+```
+
+## Common Integration Types
+
+### REST API
+
+```python
+response = requests.get(url, headers={"Authorization": f"Bearer {api_key}"})
+data = response.json()
+```
+
+### Local SQLite Database
+
+```python
+import sqlite3
+conn = sqlite3.connect(f"file:{db_path}?immutable=1", uri=True)
+cursor = conn.execute("SELECT * FROM table WHERE date > ?", (cutoff,))
+```
+
+**Always use `immutable=1`** to prevent WAL lock conflicts.
+
+### OAuth Flow (Google APIs)
+
+```python
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
+
+# First-time: run OAuth flow interactively
+flow = InstalledAppFlow.from_client_secrets_file(creds_file, scopes)
+creds = flow.run_local_server(port=0)
+
+# Subsequent: load saved token
+creds = Credentials.from_authorized_user_file(token_file, scopes)
+```
+
+### JXA (macOS Automation)
+
+```python
+import subprocess
+script = '''
+  const app = Application("Reminders");
+  const lists = app.lists();
+  // ... process and return JSON
+'''
+result = subprocess.run(
+    ["osascript", "-l", "JavaScript", "-e", script],
+    capture_output=True, text=True
+)
+data = json.loads(result.stdout)
+```
+
+## Error Handling Pattern
+
+All scripts follow the same error handling approach:
+
+```python
+def main():
+    try:
+        data = fetch_data()
+        output = transform(data)
+        write_output(output)
+        print(f"Success: {len(data)} records processed")
+        return 0
+    except requests.HTTPError as e:
+        print(f"API error: {e.response.status_code} - {e}", file=sys.stderr)
+        return 1
+    except FileNotFoundError as e:
+        print(f"Missing file: {e}", file=sys.stderr)
+        return 1
+    except Exception as e:
+        print(f"Unexpected error: {e}", file=sys.stderr)
+        return 1
+```
+
+The weekly fetcher catches errors per-source and continues to the next, so one failing source does not block the entire pipeline.
+
+## Next Steps
+
+- [Scripts](/data-sources/scripts) -- Detailed documentation of all 6 core scripts
+- [Data Sources Overview](/data-sources) -- Full list of connected sources

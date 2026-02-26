@@ -1,0 +1,226 @@
+# Monthly Workflows
+
+Monthly workflows synthesize four weeks of data into higher-order patterns. Where weekly reviews ask "what happened this week?", monthly reviews ask "what trends are forming?" and "am I moving in the right direction?"
+
+Six monthly workflows run on the first weekend of each month.
+
+## Monthly Synthesis
+
+The core monthly workflow aggregates all weekly reviews into a single document.
+
+```
+Week 1 Review ────┐
+Week 2 Review ────┤
+Week 3 Review ────┼──→ Monthly Synthesis ──→ Monthly Overview
+Week 4 Review ────┤                          + Trend Analysis
+Weekly Data ──────┘                          + Goal Check-in
+```
+
+### Monthly Overview Template
+
+```markdown
+# Monthly Overview - January 2026
+
+## Month Score: 6.5/10
+(Average of weekly scores: 5, 6, 7, 8)
+
+## Trajectory
+- Energy: ↗ Improving (started low, finished strong)
+- Productivity: → Stable (consistent 25-30 focus hours/week)
+- Health: ↘ Declining (sleep quality dropped in weeks 3-4)
+- Creative output: ↗ Improving (0 posts → 1 post → 2 posts)
+
+## Patterns Identified
+1. Sleep degrades when evening screen time exceeds 30 min
+2. Writing output correlates with morning routine consistency
+3. DeFi monitoring is consuming more time than expected (8h/week)
+
+## Commitments Made vs. Kept
+- Made: 24 | Kept: 18 | Ratio: 75%
+- Trend: Up from 68% last month
+
+## Top Accomplishments
+- Shipped InnerOS documentation site
+- Maintained 80% morning routine adherence
+- Published 3 articles (up from 1 last month)
+```
+
+## Goal Check-in
+
+Each month, goals are reviewed against quarterly OKRs:
+
+```yaml
+name: monthly-goal-checkin
+cadence: monthly (1st weekend)
+trigger: /monthly-review
+duration: 60 minutes
+
+steps:
+  - name: Pull quarterly goals
+    type: automated
+    action: Read current quarter's OKR file
+
+  - name: Assess progress
+    type: agent
+    prompt: |
+      Given these quarterly goals and this month's data,
+      assess progress on each objective. Flag any that are
+      off-track with specific recommendations.
+
+  - name: Adjust priorities
+    type: human
+    prompt: |
+      Review the assessment. Which goals need more attention
+      next month? Any to deprioritize?
+
+  - name: Update goal file
+    type: automated
+    action: Update OKR file with progress notes
+```
+
+### Goal Status Format
+
+```markdown
+## Q1 Goal Progress (after Month 1)
+
+### OKR 1: Ship personal OS documentation
+- KR1: All 8 sections written ██████░░░░ 60%
+- KR2: Site deployed and public ████░░░░░░ 40%
+- KR3: 10 GitHub stars ░░░░░░░░░░ 0%
+- Status: ON TRACK (60% at 33% of quarter)
+
+### OKR 2: Establish consistent writing habit
+- KR1: 12 articles published (3/12) ██░░░░░░░░ 25%
+- KR2: 500 subscribers (320/500) ██████░░░░ 64%
+- KR3: Zero weeks with 0 output (1 miss) ████████░░ 75%
+- Status: AT RISK (writing cadence inconsistent)
+```
+
+## Financial Review
+
+A dedicated monthly financial workflow goes deeper than the weekly portfolio check:
+
+```yaml
+name: monthly-financial-review
+cadence: monthly
+trigger: /monthly-finance
+duration: 45 minutes
+
+steps:
+  - name: Aggregate financial data
+    type: automated
+    sources:
+      - DeFi positions and yields
+      - Investment portfolio performance
+      - Bank account balances
+      - Monthly spending categories
+      - Income sources
+
+  - name: Generate financial summary
+    type: agent
+    output: Monthly financial report with charts
+
+  - name: Review allocations
+    type: human
+    prompt: |
+      Review current allocation vs. target allocation.
+      Any rebalancing needed?
+
+  - name: Update tracking
+    type: automated
+    action: Append to financial tracking log
+```
+
+### Financial Report Sections
+
+| Section | Content |
+|---------|---------|
+| Net worth snapshot | Total across all accounts, month-over-month change |
+| Investment performance | By asset class, vs. benchmarks |
+| DeFi positions | Yields, impermanent loss, gas costs |
+| Spending analysis | By category, vs. budget |
+| Income summary | By source, vs. expectations |
+| Action items | Rebalancing needs, upcoming payments |
+
+## Health Trend Analysis
+
+Monthly health reviews look at 30-day trends from wearable data:
+
+```markdown
+## January Health Summary
+
+### Sleep
+- Average score: 76 (target: 80)
+- Best week: W3 (avg 82)
+- Worst week: W1 (avg 68)
+- Pattern: Late screens → poor sleep within 2 days
+
+### Activity
+- Workout days: 17/22 target (77%)
+- Average daily steps: 8,200
+- Trend: Consistent but below 10K target
+
+### Recovery
+- Average HRV: 43ms (up from 38ms in December)
+- Recovery trend: Improving
+- Correlation: HRV higher on weeks with 4+ workouts
+
+### Recommendations (agent-generated)
+1. Enforce screen cutoff at 9 PM (sleep impact is clear)
+2. Add one walking meeting per week to hit step target
+3. Current workout frequency is working -- maintain it
+```
+
+## Content and Creative Review
+
+For users with creative output goals:
+
+```yaml
+name: monthly-creative-review
+cadence: monthly
+trigger: Part of monthly synthesis
+
+metrics:
+  - Articles published (count + word count)
+  - Music sessions (hours + tracks worked on)
+  - Content engagement (views, subscribers, feedback)
+
+output: |
+  What got created, what resonated, what's in the pipeline.
+  Agent suggests focus areas for next month's creative work.
+```
+
+## Monthly Aggregation (Automated)
+
+NightCrew includes a monthly aggregation stage that runs on the 1st of each month:
+
+```python
+# Simplified monthly aggregation logic
+def aggregate_monthly_data(year, month):
+    weekly_files = glob(f"Tracking/Logs/weekly/{year}-W*.md")
+    relevant_weeks = filter_by_month(weekly_files, month)
+
+    aggregated = {
+        "focus_hours": sum(w.focus_hours for w in relevant_weeks),
+        "commits": sum(w.commits for w in relevant_weeks),
+        "articles": sum(w.articles for w in relevant_weeks),
+        "sleep_avg": mean(w.sleep_score for w in relevant_weeks),
+        "workout_days": sum(w.workout_days for w in relevant_weeks),
+        "commitments_kept": ratio(w.kept, w.made for w in relevant_weeks),
+    }
+
+    write_monthly_data(year, month, aggregated)
+```
+
+## Schedule
+
+| Workflow | When | Duration | Type |
+|----------|------|----------|------|
+| Monthly synthesis | 1st weekend | 30 min | Agent + human |
+| Goal check-in | 1st weekend | 30 min | Agent + human |
+| Financial review | 1st weekend | 45 min | Automated + human |
+| Health trend analysis | 1st weekend | 15 min | Automated |
+| Creative review | 1st weekend | 15 min | Agent |
+| Monthly data aggregation | 1st of month | Automated | NightCrew stage |
+
+Total monthly review time: approximately 2 hours of active human participation, with the rest automated.

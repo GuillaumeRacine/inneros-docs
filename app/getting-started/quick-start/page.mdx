@@ -1,0 +1,191 @@
+# Quick Start
+
+Your first 15 minutes with InnerOS. By the end, you will have loaded your personal context, explored the agent inventory, and run a coaching session.
+
+## Minute 0-3: Load Your Context
+
+Start Claude Code from your home directory and run the context loader:
+
+```bash
+cd ~
+claude
+```
+
+Inside the session:
+
+```
+/contxt
+```
+
+This command reads your `master_context.md` and routes you into the appropriate workflow based on what you say next. If this is your first time, it will load the template context and prompt you to personalize it.
+
+You should see Claude respond with awareness of:
+- Your identity and roles
+- Current priorities
+- Any constraints you defined (ADHD, time zones, etc.)
+
+If it says "file not found," revisit the [Installation](/getting-started/installation) steps.
+
+## Minute 3-5: Explore Available Commands
+
+List every command and skill available in your installation:
+
+```bash
+# In your terminal (not inside Claude Code)
+ls ~/.claude/commands/
+ls ~/.claude/skills/
+```
+
+Or inside Claude Code, ask:
+
+```
+What commands and skills are available?
+```
+
+### Key Commands to Know
+
+| Command | What It Does |
+|---------|-------------|
+| `/contxt` | Load personal context, route to workflow |
+| `/contxt coding` | Load context + coding-specific files |
+| `/contxt music` | Load context + music domain files |
+| `/focus` | ADHD focus check: what to work on right now |
+| `/audit` | Run vault health check |
+| `/weekly-review` | Generate weekly review template |
+| `/portfolio-snapshot` | View investment positions |
+| `/dn` | DeFi position dashboard |
+
+You do not need to memorize these. The `/contxt` command will suggest relevant commands based on what you are working on.
+
+## Minute 5-8: Meet the Agents
+
+Agents are autonomous task executors. Unlike commands (which you invoke), agents are background definitions that Claude Code uses when a task matches their domain.
+
+```bash
+# List all agents
+ls ~/.claude/agents/
+```
+
+Agents are organized by domain:
+
+| Domain | Example Agents | What They Handle |
+|--------|---------------|------------------|
+| Coaching | `stoic.md`, `operator.md`, `shadow.md` | Guided reflection, decision-making |
+| Writing | `researcher.md`, `drafter.md`, `challenger.md` | 13-stage content pipeline |
+| Data | `email-triage.md`, `calendar-manager.md` | External data source integration |
+| Automation | `nightcrew.md` | Nightly processing pipeline |
+| System | `vault-audit.md`, `photo-reviewer.md` | Maintenance and organization |
+
+To use an agent directly:
+
+```
+# Inside Claude Code
+Read the agent file at ~/.claude/agents/stoic.md and follow its instructions.
+```
+
+## Minute 8-12: Try a Coaching Session
+
+This is the fastest way to experience InnerOS in action. The coaching system includes 16 personas, each specialized for a different domain. Start with The Stoic:
+
+### Step 1: Load the Coach
+
+```
+Read the coaching agent at ~/Obs_Vault/0_InnerContext/Coaching/Coaches/01_The_Stoic.md
+and begin a session.
+```
+
+### Step 2: Engage
+
+The coach will ask you a question. Answer honestly, one question at a time. A typical session:
+
+```
+Coach: What is weighing on you right now?
+
+You: I have too many projects and can't focus on any of them.
+
+Coach: [Responds with Stoic framework, asks a follow-up]
+```
+
+### Available Coaches
+
+| # | Coach | When to Use |
+|---|-------|-------------|
+| 01 | The Stoic | Emotions high, need perspective |
+| 02 | The Operator | Stuck in planning, not shipping |
+| 03 | The Father | Work encroaching on family time |
+| 04 | The Investor | Financial decisions, avoiding FOMO |
+| 05 | The Creator | Perfectionism blocking creative output |
+| 06 | The Body | Dysregulated, executive function offline |
+| 07 | The Shadow | Suspect you are deceiving yourself |
+| 08 | The Executive Coach | Need clarity on priorities |
+
+There are 8 additional specialized coaches beyond these core eight, covering areas like learning, relationships, and career transitions.
+
+### Quick Check-In Prompts
+
+If you do not know which coach to use, try these universal prompts:
+
+```
+"What am I avoiding right now?"
+"What is the one thing I should focus on today?"
+"Where am I out of integrity with my commitments?"
+```
+
+Claude will route to the appropriate coach based on your response.
+
+## Minute 12-15: Inspect the Vault Structure
+
+Open Obsidian and browse the vault to understand the PARA layout:
+
+```
+~/Obs_Vault/
+├── _System/                 # Claude Code config (don't edit directly)
+├── 0_InnerContext/          # Your operating system
+│   ├── Self_Context/        # Identity files
+│   ├── Operating System/    # Values, principles, boundaries
+│   ├── Goals/               # Quarterly and annual goals
+│   ├── Workflows/           # 50+ workflows by domain
+│   ├── Coaching/            # 16 coaching personas
+│   └── Tracking/            # Metrics and data feeds
+├── 1_Projects/              # Active, time-bound work
+├── 2_Areas/                 # Ongoing responsibilities (16 domains)
+├── 3_Resources/             # Reference material
+└── 4_Archives/              # Completed items
+```
+
+Key files to open first:
+
+| File | Why |
+|------|-----|
+| `0_InnerContext/Self_Context/master_context.md` | Your identity and priorities |
+| `0_InnerContext/Self_Context/llm_instructions.md` | How agents should interact with you |
+| `0_InnerContext/Workflows/all_workflows.md` | Complete workflow inventory |
+| `0_InnerContext/Coaching/AGENTS.md` | Master agent index |
+
+## What to Do Next
+
+Now that you have a working system, here are the recommended next steps in priority order:
+
+1. **Personalize `master_context.md`** - Replace the template with your actual identity, roles, and priorities. This is the single highest-leverage action.
+
+2. **Set up one data source** - Connect your calendar, health tracker, or email. See [Data Sources](/data-sources) for guides.
+
+3. **Explore workflows** - Read `all_workflows.md` and enable the daily workflows that match your routine.
+
+4. **Read the [Architecture](/architecture) section** - Understand the three-layer design so you can extend and customize the system.
+
+5. **Set up NightCrew** - The nightly automation pipeline is where InnerOS does its heaviest lifting. See [NightCrew](/automation/nightcrew) for the 21-stage breakdown.
+
+## Common First-Session Questions
+
+**Q: Do I need to fill in everything before the system is useful?**
+No. Start with `master_context.md` and one coaching persona. Add domains incrementally.
+
+**Q: How do agents know about me?**
+Every agent reads `master_context.md` and `llm_instructions.md` as baseline context. Domain-specific agents load additional files.
+
+**Q: What if I do not have ADHD?**
+The ADHD-optimized design (short prompts, clear actions, no ambiguity) benefits everyone. You can relax the constraints in `llm_instructions.md` if you prefer more verbose interactions.
+
+**Q: How much does this cost to run?**
+InnerOS uses the Claude API. Costs depend on usage. A typical day with a few agent sessions and NightCrew runs about $2-5 in API costs. Coaching sessions are lighter ($0.10-0.50 each).

@@ -1,0 +1,185 @@
+# Installation
+
+Clone the repository, create the Obsidian vault structure, and symlink Claude Code configuration from the vault. Total time: about 15 minutes.
+
+## Step 1: Clone the Repository
+
+```bash
+# Clone into your home directory
+cd ~
+git clone https://github.com/your-username/inneros.git
+
+# The repo contains:
+# - _System/Claude_Code/  (agents, commands, hooks, scripts, skills)
+# - 0_InnerContext/        (identity, goals, workflows, coaching)
+# - 1_Projects/            (active projects)
+# - 2_Areas/               (life domains)
+# - 3_Resources/           (reference material)
+# - 4_Archives/            (inactive items)
+```
+
+## Step 2: Create the Obsidian Vault
+
+The cloned repo **is** the vault. Point Obsidian at it:
+
+1. Open Obsidian
+2. Click "Open folder as vault"
+3. Select the cloned directory (e.g., `~/inneros`)
+4. Name the vault (e.g., "Shared Vault" -- the name matters for URI links)
+
+Alternatively, if you already have an Obsidian vault and want to merge:
+
+```bash
+# Copy InnerOS structure into an existing vault
+cp -r ~/inneros/0_InnerContext ~/Obs_Vault/
+cp -r ~/inneros/_System ~/Obs_Vault/
+# Keep your existing 1_Projects, 2_Areas, etc.
+```
+
+### Create the Symlink (Recommended)
+
+For consistent path references across agents and scripts, create a symlink:
+
+```bash
+# Symlink so ~/Obs_Vault always points to the vault
+ln -s ~/inneros ~/Obs_Vault
+
+# Or if vault is in Documents:
+ln -s ~/Documents/my-vault ~/Obs_Vault
+```
+
+Many agents reference `~/Obs_Vault` by default. This symlink keeps paths stable regardless of where the vault physically lives.
+
+## Step 3: Symlink Claude Code Configuration
+
+This is the critical step. InnerOS stores its Claude Code configuration inside the vault under `_System/Claude_Code/`. You symlink `~/.claude/` subdirectories to this location so that vault changes automatically propagate to Claude Code.
+
+```bash
+# Create ~/.claude if it doesn't exist
+mkdir -p ~/.claude
+
+# Symlink each directory
+ln -sf ~/Obs_Vault/_System/Claude_Code/Commands ~/.claude/commands
+ln -sf ~/Obs_Vault/_System/Claude_Code/Agents ~/.claude/agents
+ln -sf ~/Obs_Vault/_System/Claude_Code/Hooks ~/.claude/hooks
+ln -sf ~/Obs_Vault/_System/Claude_Code/Scripts ~/.claude/scripts
+ln -sf ~/Obs_Vault/_System/Claude_Code/Skills ~/.claude/skills
+```
+
+### Verify Symlinks
+
+```bash
+ls -la ~/.claude/
+# You should see arrows pointing to vault paths:
+# commands -> /Users/you/Obs_Vault/_System/Claude_Code/Commands
+# agents   -> /Users/you/Obs_Vault/_System/Claude_Code/Agents
+# hooks    -> /Users/you/Obs_Vault/_System/Claude_Code/Hooks
+# scripts  -> /Users/you/Obs_Vault/_System/Claude_Code/Scripts
+# skills   -> /Users/you/Obs_Vault/_System/Claude_Code/Skills
+```
+
+### Copy Settings (Not Symlinked)
+
+Settings files are copied rather than symlinked because they contain machine-specific paths:
+
+```bash
+# Copy settings templates
+cp ~/Obs_Vault/_System/Claude_Code/Settings/settings.json ~/.claude/settings.json
+cp ~/Obs_Vault/_System/Claude_Code/Settings/settings.local.json ~/.claude/settings.local.json
+
+# Copy the global CLAUDE.md
+cp ~/Obs_Vault/_System/Claude_Code/CLAUDE.md ~/.claude/CLAUDE.md
+```
+
+Edit `~/.claude/CLAUDE.md` and `~/.claude/settings.local.json` to reflect your machine's paths.
+
+## Step 4: Configure the Project-Level CLAUDE.md
+
+Create a `CLAUDE.md` in your home directory. This file is read by Claude Code at the start of every session launched from `~`:
+
+```bash
+# Create or edit ~/CLAUDE.md
+cat > ~/CLAUDE.md << 'EOF'
+# Claude Code Context - Home Directory
+
+## SESSION START: ALWAYS READ MASTER CONTEXT
+
+At the start of every session, read:
+~/Obs_Vault/0_InnerContext/Self_Context/master_context.md
+
+## Vault Structure
+~/Obs_Vault/
+├── _System/            # Claude Code config (source of truth)
+├── 0_InnerContext/     # Operating system context
+├── 1_Projects/         # Active projects
+├── 2_Areas/            # Life domains
+├── 3_Resources/        # Reference material
+└── 4_Archives/         # Inactive items
+EOF
+```
+
+This file grows over time as you document your environment, tools, paths, and preferences. It is the first thing Claude Code reads in any session.
+
+## Step 5: Initialize Identity Context
+
+The most important file in InnerOS is `master_context.md`. Create your own:
+
+```bash
+# Copy the template
+cp ~/Obs_Vault/0_InnerContext/Self_Context/master_context.template.md \
+   ~/Obs_Vault/0_InnerContext/Self_Context/master_context.md
+```
+
+Open it in Obsidian and fill in:
+
+- **Who you are** (roles, responsibilities)
+- **Current priorities** (what matters this quarter)
+- **Constraints** (ADHD, time zones, family obligations)
+- **Communication preferences** (how you want agents to interact with you)
+
+This file is loaded by the `/contxt` command and is the primary context source for all agents.
+
+## Step 6: Verify the Installation
+
+```bash
+# Start Claude Code from your home directory
+cd ~
+claude
+
+# Inside Claude Code, run:
+/contxt
+
+# Expected: Claude loads master_context.md and greets you
+# with awareness of your identity and current priorities.
+```
+
+### Troubleshooting
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| `/contxt` not found | Commands not symlinked | Re-run Step 3 symlink commands |
+| "File not found" errors | Wrong vault path | Check `~/Obs_Vault` symlink target |
+| Settings not loading | Settings not copied | Re-run Step 3 copy commands |
+| Agents not available | Agents dir not symlinked | Verify `~/.claude/agents` symlink |
+
+## Directory Structure After Installation
+
+```
+~/
+├── Obs_Vault -> ~/inneros    (symlink to vault)
+├── CLAUDE.md                  (project-level context)
+├── .claude/
+│   ├── commands -> ~/Obs_Vault/_System/Claude_Code/Commands
+│   ├── agents   -> ~/Obs_Vault/_System/Claude_Code/Agents
+│   ├── hooks    -> ~/Obs_Vault/_System/Claude_Code/Hooks
+│   ├── scripts  -> ~/Obs_Vault/_System/Claude_Code/Scripts
+│   ├── skills   -> ~/Obs_Vault/_System/Claude_Code/Skills
+│   ├── settings.json          (copied, machine-specific)
+│   ├── settings.local.json    (copied, machine-specific)
+│   └── CLAUDE.md              (global instructions)
+└── .secrets                   (API keys, chmod 600)
+```
+
+## Next Steps
+
+Head to [Quick Start](/getting-started/quick-start) to run your first session.

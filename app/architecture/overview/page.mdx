@@ -1,0 +1,167 @@
+# Three-Layer Architecture
+
+InnerOS separates concerns into three distinct layers: the Agent Layer for reasoning, the Command/Skill Layer for deterministic procedures, and the Automation Layer for scheduled background work. Each layer has a clear responsibility boundary.
+
+## Layer 1: Agent Layer (Probabilistic)
+
+Agents are autonomous task executors that use LLM reasoning to handle ambiguous, judgment-intensive work. They are markdown files stored in `~/.claude/agents/` (symlinked from the vault).
+
+### Characteristics
+
+- **Probabilistic output.** Given the same input twice, an agent may produce different results.
+- **Context-aware.** Agents read identity, goals, and domain files from the vault before executing.
+- **Externally validated.** Agents do not decide when they are done. Completion criteria are defined by the caller.
+
+### Agent Categories
+
+| Category | Count | Examples |
+|----------|-------|---------|
+| Coaching | 16 | Stoic, Operator, Shadow, Body, Executive Coach |
+| Writing | 13 | Researcher, Synthesizer, Drafter, Challenger |
+| Data | 8 | Email triage, calendar manager, photo reviewer |
+| System | 12 | Vault audit, context loader, weekly review |
+| Domain | 27 | Crypto, music, health, family, learning |
+
+### How Agents Work
+
+```
+1. User invokes agent (directly or via routing)
+2. Agent loads its definition file (persona, instructions, constraints)
+3. Agent loads relevant context files from vault
+4. Agent executes within Claude Code session
+5. Output is validated against completion criteria
+6. Results written back to vault if applicable
+```
+
+### Example Agent Definition
+
+```markdown
+# Agent: vault-audit
+
+## Role
+Check vault health: orphaned files, broken links,
+missing indexes, stale tracking data.
+
+## Context Files
+- ~/Obs_Vault/_System/SYSTEM_MAP.md
+- ~/Obs_Vault/0_InnerContext/Workflows/WORKFLOW_INDEX.md
+
+## Completion Criteria
+- All PARA folders scanned
+- Report generated with findings
+- Zero false positives (verify each finding)
+```
+
+## Layer 2: Command/Skill Layer (Deterministic)
+
+Commands and skills are scripted procedures with known inputs and outputs. They are invoked explicitly via slash commands in Claude Code.
+
+### Characteristics
+
+- **Deterministic output.** Same input always produces same output.
+- **No LLM reasoning required.** Pure script execution.
+- **Fast and cheap.** No API calls, no token costs.
+- **Composable.** Commands can be chained by agents.
+
+### Command vs. Skill
+
+| Aspect | Command | Skill |
+|--------|---------|-------|
+| Complexity | Single action | Multi-step procedure |
+| Location | `~/.claude/commands/` | `~/.claude/skills/` |
+| Invocation | `/command-name` | `/skill-name [args]` |
+| Example | `/focus` | `/contxt coding` |
+
+### Command Categories
+
+| Category | Count | Examples |
+|----------|-------|---------|
+| Context Loading | 12 | `/contxt`, `/contxt coding`, `/contxt music` |
+| Vault Operations | 15 | `/audit`, `/inbox-scan`, `/triage` |
+| Data Fetching | 18 | `/metrics`, `/portfolio-snapshot`, `/dn` |
+| Workflow Support | 22 | `/weekly-review`, `/focus`, `/publish-prep` |
+| System Utilities | 21 | `/dev-cleanup`, `/verify-changes`, `/sync-workflows` |
+
+### How Commands Work
+
+```
+1. User types /command-name in Claude Code
+2. Claude Code reads the command's markdown definition
+3. Embedded script (bash, python, node) executes
+4. Output returned to the conversation
+5. No LLM reasoning involved in execution
+```
+
+## Layer 3: Automation Layer (Scheduled)
+
+The automation layer runs without human intervention on defined schedules. The primary component is NightCrew, a 21-stage pipeline that executes nightly.
+
+### Characteristics
+
+- **Scheduled execution.** Runs via launchd (macOS) or cron.
+- **Hybrid.** Most stages are deterministic scripts; some invoke agents for judgment.
+- **Idempotent.** Safe to re-run any stage without side effects.
+- **Observable.** Every stage logs its actions to the vault.
+
+### NightCrew Pipeline (Abbreviated)
+
+| Stage | Type | Purpose |
+|-------|------|---------|
+| 1-3 | Script | File organization, inbox triage |
+| 4-6 | Script | Data fetching (health, finance, calendar) |
+| 7-9 | Agent | Communication triage (email, messages) |
+| 10-12 | Script | Photo review, vault maintenance |
+| 13-15 | Script | Metrics aggregation, tracking updates |
+| 16-18 | Agent | Insight generation, pattern detection |
+| 19-21 | Script | Morning brief assembly, git sync |
+
+### How Automation Works
+
+```
+1. launchd triggers NightCrew at scheduled time
+2. Orchestrator script iterates through stages
+3. Each stage reads input from vault / external sources
+4. Each stage writes output back to vault
+5. Final stage assembles morning brief
+6. Git commits and pushes changes
+```
+
+## How the Layers Interact
+
+The three layers are not isolated. They call each other in defined patterns:
+
+```
+Human
+  │
+  ├── Invokes Command ──→ Command executes ──→ Returns result
+  │
+  ├── Invokes Agent ──→ Agent reasons ──→ Agent calls Commands
+  │                                    ──→ Agent writes to Vault
+  │
+  └── (Sleeping) ──→ NightCrew runs ──→ Scripts + Agents process
+                                      ──→ Results in Vault
+                                      ──→ Morning brief ready
+```
+
+### Key Interaction Patterns
+
+| Pattern | Example |
+|---------|---------|
+| Agent calls Command | Writing agent invokes `/publish-prep` after drafting |
+| Command triggers Agent | `/weekly-review` invokes data fetchers then summary agent |
+| Automation invokes Agent | NightCrew stage 8 invokes email triage agent |
+| Agent reads Vault | Every agent loads context files before executing |
+| Command writes Vault | `/metrics` writes aggregated data to tracking files |
+
+## Adding New Components
+
+When extending InnerOS, decide which layer your component belongs to:
+
+| If your component... | Put it in... | Format |
+|---------------------|-------------|--------|
+| Needs LLM judgment | Agent Layer | `~/.claude/agents/name.md` |
+| Has known I/O, no reasoning | Command Layer | `~/.claude/commands/name.md` |
+| Should run on schedule | Automation Layer | Script + launchd plist |
+| Needs both reasoning and procedure | Hybrid | Command orchestrates, agent reasons |
+
+See [Design Principles](/architecture/design-principles) for the decision framework that guides this choice.

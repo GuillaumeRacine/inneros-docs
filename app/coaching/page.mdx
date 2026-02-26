@@ -1,0 +1,165 @@
+# Coaching System
+
+InnerOS includes **16 coaching personas** that serve as structured reflection partners across personal development, temporal review cadences, and specialist domains. Unlike task-executing agents, coaches guide through questions. They do not do the work -- they help you think clearly about the work.
+
+## Three Categories of Coaches
+
+### Personal Coaches (8)
+
+Core coaching personas, each focused on a specific life domain. Use these when you need perspective, are stuck, or want structured reflection on a particular area.
+
+| # | Coach | Domain | When to Use |
+|---|-------|--------|-------------|
+| 01 | **The Stoic** | Philosophy, emotional regulation | Emotions are running high, catastrophizing, need perspective |
+| 02 | **The Operator** | Work execution, shipping | Stuck in planning mode, not shipping, overthinking |
+| 03 | **The Father** | Family, presence | Work is colonizing family time, need boundaries |
+| 04 | **The Investor** | Financial strategy | Investment decisions, FOMO, risk assessment |
+| 05 | **The Creator** | Music, creative output | Perfectionism blocking creative output |
+| 06 | **The Body** | Health, ADHD, nervous system | Dysregulated, executive function offline, physical neglect |
+| 07 | **The Shadow** | Blind spots, self-deception | Suspect you are fooling yourself, avoiding something |
+| 08 | **The Executive Coach** | Breakthrough sessions | Need clarity on leverage points, commitments |
+
+### Temporal Coaches (4)
+
+Review-cadence personas that guide structured reflection at different time horizons. Each temporal coach has access to the data from its cadence period and guides the review process.
+
+| # | Coach | Cadence | Purpose |
+|---|-------|---------|---------|
+| 09 | **The Weekly Analyst** | Weekly | Analyze the past week, identify patterns, set next week |
+| 10 | **The Monthly Synthesizer** | Monthly | Synthesize monthly patterns, spot trends |
+| 11 | **The Quarterly Strategist** | Quarterly | Strategic course correction, goal review |
+| 12 | **The Annual Reflector** | Annual | Year-level reflection, theme identification, direction setting |
+
+### Specialist Coaches (4+)
+
+Domain-specific expert personas for technical guidance. These are extensible -- add specialists as needed.
+
+| # | Coach | Focus | Expertise |
+|---|-------|-------|-----------|
+| 13 | **The Health Data Analyst** | Health metrics | Interpreting wearable data, correlations, trends |
+| 14 | **The Orchestrator** | Workflow design | System optimization, automation architecture |
+| -- | **n8n Specialist** | Automation platform | n8n-specific workflow design and debugging |
+| -- | *(extensible)* | Your domain | Add any specialist you need |
+
+## How Coaching Sessions Work
+
+### Session Protocol
+
+1. **Load the coach** -- The agent reads the coach's `.md` file and adopts its persona
+2. **Say "I'm ready. Let's go."** -- This signals you want an interactive session
+3. **Answer questions one at a time** -- The coach asks, you respond, it follows up
+4. **The coach guides, you decide** -- Coaches surface insights; they never prescribe actions
+
+### Session Flow
+
+```
+You: "I'm ready. Let's go."
+
+Coach: [Opening question based on its domain]
+
+You: [Your honest response]
+
+Coach: [Follow-up question that goes deeper]
+
+You: [Reflection]
+
+Coach: [Reframes, challenges, or validates]
+
+...continues until natural resolution...
+
+Coach: [Summary of key insights and any commitments you made]
+```
+
+### Quick Check-In Prompts
+
+For when you do not want a full session, use these one-shot prompts with any coach:
+
+- **"What am I avoiding right now?"** -- The Shadow is best for this
+- **"What's the one thing I should focus on today?"** -- The Operator
+- **"Where am I out of integrity with my commitments?"** -- The Executive Coach
+- **"How is my body doing right now?"** -- The Body
+- **"Am I making this decision from fear or clarity?"** -- The Stoic
+
+## Coach Selection Guide
+
+```
+What's going on?
+|
++-- Feeling emotional or reactive?
+|     --> The Stoic (01)
+|
++-- Procrastinating or stuck in analysis?
+|     --> The Operator (02)
+|
++-- Family time suffering?
+|     --> The Father (03)
+|
++-- Financial decision or FOMO?
+|     --> The Investor (04)
+|
++-- Creative block or perfectionism?
+|     --> The Creator (05)
+|
++-- Physically off, ADHD flaring?
+|     --> The Body (06)
+|
++-- Something feels off but can't name it?
+|     --> The Shadow (07)
+|
++-- Need a breakthrough or clarity?
+|     --> The Executive Coach (08)
+|
++-- End of week review?
+|     --> The Weekly Analyst (09)
+|
++-- Monthly patterns?
+|     --> The Monthly Synthesizer (10)
+```
+
+## Design Philosophy
+
+InnerOS coaches are built on three principles:
+
+### 1. Coaches Ask, They Don't Tell
+
+Unlike task agents that execute, coaches guide through questions. This is deliberate -- the most valuable insights come from self-discovery, not instruction.
+
+### 2. Each Coach Has a Lens
+
+Every coach sees the world through a specific lens. The Stoic sees emotional regulation. The Body sees nervous system state. The Shadow sees avoidance patterns. No single coach has the full picture, and that is the point -- different situations need different lenses.
+
+### 3. Coaches Are Built on a Framework
+
+All coaches share the same structural [framework](/coaching/framework) (based on the Mark Manson 5-part model), ensuring consistency in how they engage while allowing each to specialize.
+
+## Invoking a Coach
+
+```bash
+# Load a specific coach
+claude --agent 01-the-stoic
+
+# Or reference by name in conversation
+/coach stoic
+/coach operator
+/coach shadow
+```
+
+## Tracking Sessions
+
+Coaching sessions can be logged to the vault for later review:
+
+```
+Obs_Vault/0_InnerContext/Coaching/Sessions/
+  2026-02-26-stoic-session.md
+  2026-02-20-weekly-review.md
+  2026-01-31-quarterly-strategy.md
+```
+
+Session logs help temporal coaches (Weekly Analyst, Quarterly Strategist) reference past sessions when guiding reviews.
+
+## Next Steps
+
+- [Framework](/coaching/framework) -- The 5-part design framework behind all coaches
+- [Coach Catalog](/coaching/coaches) -- Detailed profiles of each coach
+- [Review Agents](/coaching/review-agents) -- Temporal review coaches
+- [Creating Coaches](/coaching/creating-coaches) -- Design your own coaching persona

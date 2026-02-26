@@ -1,0 +1,129 @@
+# Data Sources
+
+InnerOS integrates with **12+ external data sources** to give agents access to real-time and historical data across health, finance, productivity, communication, and creative domains. Every data source follows the same pattern: a Python script fetches, transforms, and writes structured markdown to the vault.
+
+## Connected Sources
+
+| Source | Domain | Data Type | Method | Cadence |
+|--------|--------|-----------|--------|---------|
+| **Google Calendar** | Productivity | Events, schedules | Python + Google API | Real-time |
+| **Health wearables** | Health | Sleep, recovery, activity, HRV | Export + scripts | Daily / Weekly |
+| **Oura Ring** | Health | Sleep, readiness, activity | Oura API | Daily |
+| **Photos Library** | Organization | Photo metadata, scores, triage | SQLite direct query | Nightly |
+| **Gmail** | Communication | Email triage, categories | Google API + OAuth | Nightly |
+| **Apple Reminders** | Productivity | Tasks, lists, due dates | JXA (JavaScript for Automation) | Nightly |
+| **Apple Notes** | Capture | Quick capture notes | JXA | On demand |
+| **WhatsApp** | Communication | Messages, conversations | SQLite direct query | Nightly |
+| **Voice Memos** | Capture | Transcriptions | Whisper API | Nightly |
+| **Git Repositories** | Coding | Commits, activity | `git log` | Weekly |
+| **GitHub Projects** | Productivity | Issues, PRs, boards | `gh` CLI | Weekly |
+| **Finance Tracker** | Finance | Transactions, budgets | Web / API | Weekly |
+| **DeFi Positions** | Finance | On-chain yields, risk | Direct RPC / APIs | Every 15 min |
+| **Claude Code Activity** | Meta | Session history, tool usage | JSONL parsing | Weekly |
+
+## Data Flow Architecture
+
+```
+External Source
+     |
+     v
+Python Script (fetch + transform)
+     |
+     v
+Structured Markdown (in vault)
+     |
+     +---> Agent reads context
+     +---> Weekly review aggregation
+     +---> NightCrew nightly pipeline
+```
+
+Every data source follows this three-step pattern:
+
+1. **Fetch** -- Script calls the external API or reads a local database
+2. **Transform** -- Raw data is converted to structured markdown
+3. **Store** -- Output is written to a standard vault location
+
+## Vault Storage Locations
+
+| Data Type | Vault Path |
+|-----------|-----------|
+| Raw exports | `0_InnerContext/Tracking/Data/` |
+| Weekly aggregations | `0_InnerContext/Tracking/Logs/weekly/` |
+| Daily insights | `0_InnerContext/Auto Updates/` |
+| Triage state | `0_InnerContext/Tracking/Data/<source>_state.json` |
+| Script configuration | `_System/Claude_Code/Scripts/` |
+
+## Credential Management
+
+Data source credentials are managed through a layered fallback chain:
+
+```
+1Password CLI (preferred)
+  op read "op://Agents/ServiceName/api-key"
+
+Environment variables (fallback)
+  $SERVICE_API_KEY (from ~/.secrets)
+
+.env files (last resort)
+  ~/path/to/scripts/.env
+```
+
+The `secrets_manager.py` module handles this resolution automatically. Scripts call `get_secret("SERVICE_API_KEY")` and the module tries each layer in order. See [Integration Patterns](/data-sources/integration-patterns) for the full credential setup.
+
+**Important:** LaunchAgents (scheduled tasks) cannot use 1Password because they lack a GUI session for biometric authentication. For scheduled scripts, set `OP_DISABLED=1` in the plist environment and rely on `.env` files.
+
+## The Weekly Data Pipeline
+
+Every week, a single aggregation script collects data from all sources:
+
+```bash
+python3 weekly_data_fetcher.py
+```
+
+This script:
+
+1. Iterates through all configured data sources
+2. Fetches the last 7 days of data from each
+3. Transforms each into a standardized markdown section
+4. Writes a combined output file: `YYYY-WXX-data.md`
+5. Reports which sources succeeded and which failed (graceful degradation)
+
+The weekly data file feeds the [weekly review workflow](/workflows/weekly), where a coaching agent interprets the data and produces a human-readable review.
+
+## Database Access Patterns
+
+Several sources (Photos, WhatsApp) use local SQLite databases rather than APIs. Key patterns:
+
+- **Always use `immutable=1`** when opening SQLite databases to avoid WAL lock conflicts with the host application
+- **Core Data timestamps** use epoch offset: add `978307200` to convert to Unix time
+- **Read-only access** -- scripts never modify source databases
+
+```python
+import sqlite3
+
+# Safe read-only connection
+conn = sqlite3.connect(f"file:{db_path}?immutable=1", uri=True)
+```
+
+## Privacy and Security
+
+- **All data stays local.** Scripts write to the local vault, never to external services
+- **Credentials use 1Password** with biometric authentication when possible
+- **No telemetry.** No data is sent to third parties
+- **Sensitive data** (messages, health metrics) stays in the vault and is never committed to git
+- **OAuth tokens** are stored locally with restricted file permissions
+
+## Adding a New Source
+
+InnerOS is designed to make adding new data sources straightforward:
+
+1. Write a Python script following the [integration pattern](/data-sources/integration-patterns)
+2. Store credentials in 1Password (or `.env` as fallback)
+3. Register the source in the weekly data fetcher config
+4. Add a vault path for the output
+5. Test with a manual run
+
+## Next Steps
+
+- [Integration Patterns](/data-sources/integration-patterns) -- How to add a new data source
+- [Scripts](/data-sources/scripts) -- Detailed documentation of the 6 core scripts

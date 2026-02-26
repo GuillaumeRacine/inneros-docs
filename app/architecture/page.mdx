@@ -1,0 +1,82 @@
+# Architecture
+
+InnerOS is a three-layer system that coordinates AI agents, deterministic commands, and automated pipelines to manage every domain of a person's life. This section explains how the pieces fit together.
+
+## System at a Glance
+
+```
+┌─────────────────────────────────────────────────────┐
+│                     Human (You)                      │
+│                  Claude Code CLI                     │
+└──────────────┬──────────────────┬───────────────────┘
+               │                  │
+    ┌──────────▼──────────┐  ┌───▼────────────────────┐
+    │    Agent Layer       │  │  Command/Skill Layer   │
+    │  76 autonomous agents│  │  88 slash commands     │
+    │  Probabilistic       │  │  Deterministic         │
+    │  judgment + reasoning│  │  known I/O, scripted   │
+    └──────────┬──────────┘  └───┬────────────────────┘
+               │                  │
+    ┌──────────▼──────────────────▼───────────────────┐
+    │              Obsidian Vault (PARA)               │
+    │   Identity | Goals | Workflows | Tracking        │
+    │   Projects | Areas | Resources | Archives        │
+    └──────────────────────┬──────────────────────────┘
+                           │
+    ┌──────────────────────▼──────────────────────────┐
+    │           Automation Layer (NightCrew)            │
+    │  21-stage nightly pipeline                       │
+    │  Data fetchers | File org | Triage | Reporting   │
+    └─────────────────────────────────────────────────┘
+```
+
+## Component Inventory
+
+| Component | Count | Type |
+|-----------|-------|------|
+| Agents | 76 | Probabilistic (LLM reasoning) |
+| Commands & Skills | 88 | Deterministic (scripted procedures) |
+| Coaching Personas | 16 | Guided reflection agents |
+| Writing Pipeline Stages | 13 | Mixed (deterministic + agent) |
+| NightCrew Stages | 21 | Mostly deterministic with agent steps |
+| Workflows | 50+ | Defined procedures across life domains |
+| Data Source Integrations | 12+ | Scripts + API connectors |
+
+## Key Design Decisions
+
+### 1. Vault as Source of Truth
+
+The Obsidian vault is not just a note-taking tool. It is the canonical data store for the entire system. Agents read context from the vault. Commands write results back to the vault. Automation pipelines process vault contents overnight.
+
+### 2. Symlinks Over Duplication
+
+Claude Code configuration (`~/.claude/`) is symlinked to the vault's `_System/Claude_Code/` directory. One source of truth, one place to edit, changes propagate automatically.
+
+### 3. Deterministic Control Over Probabilistic Agents
+
+Agents do not self-determine when they are done. Completion criteria are defined externally. Validation (tests, type checks, linting) must pass before any task is marked complete. This prevents the most common failure mode of AI systems: confident but wrong output.
+
+### 4. ADHD as an Architectural Constraint
+
+Every interaction point is designed for low executive function overhead:
+- Short prompts with clear next actions
+- No ambiguous choices
+- Context is loaded automatically, not manually assembled
+- The system tells you what to do next, not what your options are
+
+## Section Guide
+
+| Page | What You'll Learn |
+|------|------------------|
+| [Three-Layer Architecture](/architecture/overview) | Deep dive into the agent, command, and automation layers |
+| [Design Principles](/architecture/design-principles) | The constraints and philosophies that shape the system |
+| [PARA Structure](/architecture/para-structure) | How the vault organizes Projects, Areas, Resources, Archives |
+| [Storage Strategy](/architecture/storage-strategy) | Local SSD vs. external drive, iCloud, Obsidian Sync |
+| [Symlink System](/architecture/symlinks) | How `~/.claude/` maps to the vault |
+| [Data Flow](/architecture/data-flow) | How data moves from external sources through the system |
+
+## How to Read This Section
+
+If you are setting up InnerOS for the first time, read [Design Principles](/architecture/design-principles) first to understand the "why," then [PARA Structure](/architecture/para-structure) to understand the "where," then [Symlinks](/architecture/symlinks) to understand the "how."
+
+If you are extending InnerOS, start with [Three-Layer Architecture](/architecture/overview) and [Data Flow](/architecture/data-flow) to understand where your new component fits.

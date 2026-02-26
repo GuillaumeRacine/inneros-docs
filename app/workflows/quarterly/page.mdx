@@ -1,0 +1,231 @@
+# Quarterly Workflows
+
+Quarterly workflows operate at the strategic level. Where monthly reviews track trends, quarterly reviews evaluate whether you are working on the right things at all. Four workflows run at the end of each quarter, typically over a weekend.
+
+## Quarterly Review Structure
+
+```
+3 Monthly Overviews ────┐
+Goal Progress Data ─────┤
+Life Domain Scores ─────┼──→ Quarterly Strategy Session
+Commitment Patterns ────┤         │
+External Changes ───────┘         ├── OKR Review & Reset
+                                  ├── Life Domain Audit
+                                  ├── System Maintenance
+                                  └── Next Quarter Planning
+```
+
+## OKR Review and Reset
+
+The most structured quarterly workflow. Every quarter begins with 3-5 Objectives, each with 2-4 Key Results.
+
+### Review Process
+
+```yaml
+name: quarterly-okr-review
+cadence: quarterly
+trigger: Last weekend of quarter
+duration: 2 hours
+
+steps:
+  - name: Score existing OKRs
+    type: human + agent
+    process: |
+      For each Key Result:
+      - Score 0.0 to 1.0 based on actual achievement
+      - Note what helped or blocked progress
+      - Classify: Hit (0.7+), Partial (0.4-0.6), Missed (<0.4)
+
+  - name: Analyze patterns
+    type: agent
+    prompt: |
+      Given 3 months of weekly and monthly data, plus OKR scores:
+      - Which objectives had consistent momentum?
+      - Which stalled and why?
+      - What unplanned work displaced planned goals?
+
+  - name: Draft next quarter OKRs
+    type: human + agent
+    process: |
+      Agent proposes OKRs based on:
+      - Carry-forward from incomplete goals
+      - Emerging priorities from monthly reviews
+      - Annual goal alignment
+      Human reviews, adjusts, commits.
+
+  - name: Write OKR file
+    type: automated
+    output: Goals/Quarterly/q{N}_{year}.md
+```
+
+### OKR Scoring Example
+
+```markdown
+# Q4 2025 OKR Review
+
+## O1: Build autonomous life management system
+Score: 0.8 (Hit)
+
+- KR1: 50+ workflows documented → 0.9 (53 workflows)
+- KR2: NightCrew running 7 nights/week → 0.7 (5.2 avg)
+- KR3: All daily workflows automated → 0.8 (10/12 automated)
+
+Reflection: Strong execution. NightCrew reliability needs work --
+occasional failures on stages 14-17 when external APIs timeout.
+
+## O2: Establish consistent writing practice
+Score: 0.5 (Partial)
+
+- KR1: 12 articles published → 0.6 (7/12)
+- KR2: 1000 subscribers → 0.4 (640/1000)
+- KR3: Writing pipeline fully operational → 0.5 (6/12 agents built)
+
+Reflection: Writing happened in bursts. Weeks 3-7 had zero output.
+The Shadow coach flagged avoidance pattern -- need to address root
+cause, not just add more systems.
+```
+
+## Life Domain Audit
+
+Every quarter, each life domain is assessed on a 1-10 scale. This prevents over-indexing on one area (typically work) at the expense of others.
+
+### Domain Assessment
+
+```markdown
+## Q4 2025 Life Domain Audit
+
+| Domain | Score | Trend | Notes |
+|--------|-------|-------|-------|
+| Health | 7 | ↗ | Consistent workouts, sleep needs work |
+| Family | 8 | → | Present and engaged, maintaining routines |
+| Finance | 6 | ↗ | DeFi performing, spending above budget |
+| Creative/Music | 4 | ↘ | Almost no sessions this quarter |
+| Writing | 5 | → | Inconsistent but improving |
+| Career | 7 | ↗ | Good shipping velocity |
+| Learning | 6 | → | Course progress stalled |
+| Relationships | 7 | → | Maintaining but not deepening |
+| Personal Growth | 6 | ↗ | Coaching sessions helpful |
+
+## Analysis (agent-generated)
+
+Lowest domain: Creative/Music (4/10). This has been declining for
+2 quarters. Recommend scheduling 3 non-negotiable music sessions
+per week in Q1 and tracking adherence.
+
+Highest domain: Family (8/10). Stable and strong. No changes needed.
+
+Biggest gap: Finance spending (above budget 2/3 months). Recommend
+monthly budget review as a formal workflow step.
+```
+
+### Domain Score Visualization
+
+```
+Health:    ███████░░░  7
+Family:    ████████░░  8
+Finance:   ██████░░░░  6
+Music:     ████░░░░░░  4  ← attention needed
+Writing:   █████░░░░░  5  ← attention needed
+Career:    ███████░░░  7
+Learning:  ██████░░░░  6
+Relations: ███████░░░  7
+Growth:    ██████░░░░  6
+```
+
+## System Maintenance
+
+Quarterly system maintenance ensures InnerOS itself stays healthy:
+
+```yaml
+name: quarterly-system-maintenance
+cadence: quarterly
+trigger: End of quarter
+duration: 2-4 hours
+
+steps:
+  - name: Audit vault structure
+    type: automated
+    action: /audit
+    checks:
+      - Orphaned files (not linked from any index)
+      - Empty folders
+      - Stale projects (no edits in 90 days)
+      - PARA compliance (files in correct locations)
+
+  - name: Review agent performance
+    type: agent
+    prompt: |
+      Review logs from all 76 agents this quarter.
+      Which agents were used most/least?
+      Any agents consistently failing or producing low-quality output?
+
+  - name: Update workflow registry
+    type: human
+    action: |
+      Review WORKFLOW_INDEX.md:
+      - Remove workflows that are no longer relevant
+      - Add new workflows that emerged organically
+      - Update automation status for each workflow
+
+  - name: Archive completed projects
+    type: automated
+    action: Move completed projects from 1_Projects/ to 4_Archives/
+
+  - name: Prune and optimize
+    type: automated
+    checks:
+      - Delete stale NightCrew logs (older than 1 quarter)
+      - Compress large data files
+      - Verify all scripts still run without errors
+      - Update dependencies
+```
+
+## Next Quarter Planning
+
+The final quarterly workflow produces the plan for the next 90 days:
+
+```markdown
+## Q1 2026 Plan
+
+### Theme: "Ship and Share"
+
+### Objectives
+1. Launch InnerOS documentation publicly
+2. Publish 8 articles (2/month minimum)
+3. Restore music practice habit (3x/week)
+
+### Key Dates
+- Jan 15: Documentation site v1.0
+- Feb 1: First "building in public" post
+- Mar 15: Q1 article target checkpoint
+
+### Resource Allocation
+| Domain | Hours/Week Target |
+|--------|-------------------|
+| Career/Building | 20 |
+| Writing | 5 |
+| Music | 3 |
+| Health | 5 |
+| Learning | 3 |
+
+### Risks
+- Writing avoidance pattern may recur (mitigation: Shadow coach check-ins)
+- NightCrew reliability (mitigation: add retry logic to stages 14-17)
+- Music scheduling conflicts with evening family time (mitigation: morning slots)
+
+### Success Criteria
+- All 3 objectives score 0.7+ at Q1 review
+- Life domain audit: no domain below 5
+- System uptime: NightCrew runs 6.5+ nights/week average
+```
+
+## Quarterly Schedule
+
+| Workflow | When | Duration | Participants |
+|----------|------|----------|-------------|
+| OKR scoring | Last Saturday of quarter | 1 hour | Human + agent |
+| Life domain audit | Last Saturday | 30 min | Human + agent |
+| System maintenance | Last Sunday | 2-4 hours | Mostly automated |
+| Next quarter planning | Last Sunday | 1 hour | Human + agent |
+
+Total active time: approximately 4-6 hours per quarter.

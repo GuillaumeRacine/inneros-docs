@@ -1,0 +1,203 @@
+# Storage Strategy
+
+InnerOS uses a deliberate multi-tier storage strategy. Not everything belongs on the internal SSD. This page explains what goes where and why.
+
+## The Three Tiers
+
+```
+┌────────────────────────────────────────────────┐
+│ Tier 1: Internal SSD (always available)        │
+│  - Obsidian vault (InnerOS context)            │
+│  - Claude Code config (~/.claude/)             │
+│  - Secrets and API keys                        │
+│  - macOS screenshots                           │
+│  Speed: fastest | Size: 256GB+ | Backup: Sync  │
+└────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────┐
+│ Tier 2: External SSD (always connected)        │
+│  - Active projects                             │
+│  - Archives                                    │
+│  - Large files (datasets, media)               │
+│  - Private vault (sensitive documents)         │
+│  Speed: fast | Size: 1-2TB | Backup: manual    │
+└────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────┐
+│ Tier 3: Cloud Storage (synced)                 │
+│  - iCloud Drive (documents, photos, music)     │
+│  - Obsidian Sync (vault replication)           │
+│  - Google Drive (shared documents)             │
+│  - Git remotes (code, context repo)            │
+│  Speed: variable | Size: unlimited | Backup: ∞ │
+└────────────────────────────────────────────────┘
+```
+
+## Tier 1: Internal SSD
+
+The internal SSD stores only what agents need instant, guaranteed access to. If the external drive is unplugged, the core system still works.
+
+### What Lives Here
+
+| Path | Contents | Why |
+|------|----------|-----|
+| `~/Obs_Vault` | InnerOS vault (symlink) | Agents read this every session |
+| `~/.claude/` | Claude Code config | Required for Claude Code to function |
+| `~/CLAUDE.md` | Project-level context | Read at session start |
+| `~/.secrets` | API keys (chmod 600) | Shell environment variables |
+| `~/0_System/Screenshots/` | macOS screenshot capture | Set via `defaults write` |
+
+### Size Budget
+
+The internal SSD needs roughly:
+- Obsidian vault: 500MB - 2GB (depending on attachments)
+- Claude Code data: 100-500MB (history, cache)
+- OS and apps: ~30GB
+- Buffer: 10GB+
+
+Total InnerOS footprint on internal SSD: under 5GB.
+
+## Tier 2: External SSD
+
+The external SSD is the default location for all files that do not need to be on the internal drive. It is always connected to the machine (for desktop setups like a Mac mini).
+
+### What Lives Here
+
+| Path | Contents | Size |
+|------|----------|------|
+| `/Volumes/ExternalSSD/0_System/` | Private vault, system files | ~250MB |
+| `/Volumes/ExternalSSD/1_Projects/` | Active project files | Varies |
+| `/Volumes/ExternalSSD/2_Areas/` | Area-specific large files | Varies |
+| `/Volumes/ExternalSSD/3_Resources/` | Reference materials | ~100MB |
+| `/Volumes/ExternalSSD/4_Archives/` | Completed projects | 1-5GB |
+
+### PARA Mirroring
+
+The external drive mirrors the PARA structure of the vault:
+
+```
+/Volumes/ExternalSSD/
+├── 0_System/
+│   └── Obsidian_Private/    # Sensitive docs (credentials, ID)
+│       └── ID/
+│           └── Creds/       # API credentials reference
+├── 1_Projects/              # Active project workspaces
+├── 2_Areas/                 # Large area-specific files
+├── 3_Resources/             # Reference material
+└── 4_Archives/              # Completed/inactive items
+```
+
+### Private Vault
+
+Sensitive documents (credentials, identity documents, financial records) live in a separate Obsidian vault on the external drive. This vault is never synced to the cloud.
+
+```
+/Volumes/ExternalSSD/0_System/Obsidian_Private/
+├── ID/
+│   └── Creds/
+│       ├── 1Password/
+│       └── ...
+└── ...
+```
+
+Agents access this vault only when explicitly instructed and only for credential lookup.
+
+## Tier 3: Cloud Storage
+
+Cloud storage handles sync, backup, and cross-device access. InnerOS uses multiple cloud providers for different purposes.
+
+### iCloud Drive
+
+```
+~/Library/Mobile Documents/com~apple~CloudDocs/
+├── Documents/        # PARA-organized documents
+│   ├── Archive/
+│   ├── Areas/
+│   ├── Resources/
+│   └── Obs_Vault/    # Vault backup (via iCloud)
+├── Knowledge/        # Books, courses, learning material
+├── Music/            # Recordings, projects
+└── Stanford/         # Course materials, datasets
+```
+
+iCloud is useful for:
+- Large file storage (datasets, media)
+- Cross-device access (iPhone photos, voice memos)
+- Automatic backup of documents
+
+### Obsidian Sync
+
+Obsidian Sync replicates the vault across devices. It syncs the vault contents but not the `_System/Claude_Code/` directory (which is machine-specific).
+
+| What Syncs | What Doesn't |
+|------------|-------------|
+| All markdown files | Scripts with machine-specific paths |
+| Vault config (.obsidian/) | `_System/Claude_Code/Settings/` |
+| Templates | Git history |
+| Attachments | Large binary files |
+
+### Google Drive
+
+Used for shared documents and collaboration. InnerOS accesses Google Drive via the Google API for calendar integration and document retrieval.
+
+### Git Remotes
+
+The vault's `_System` directory and selected context files are version-controlled with git and pushed to a private GitHub repository. This provides:
+- History tracking for all configuration changes
+- Backup beyond Obsidian Sync
+- Ability to roll back mistakes
+
+## Deciding Where to Put Things
+
+Use this decision tree:
+
+```
+New file arrives
+│
+├── Is it needed by agents every session?
+│   └── YES: Tier 1 (internal SSD, inside vault)
+│
+├── Is it sensitive (credentials, personal ID)?
+│   └── YES: Tier 2 (external SSD, private vault)
+│
+├── Is it a project workspace or large file?
+│   └── YES: Tier 2 (external SSD, PARA folders)
+│
+├── Does it need cross-device access?
+│   └── YES: Tier 3 (iCloud or Obsidian Sync)
+│
+└── Is it a completed project?
+    └── YES: Tier 2 archives, then Tier 3 backup
+```
+
+## Backup Strategy
+
+| What | Where | Method | Cadence |
+|------|-------|--------|---------|
+| Vault contents | Obsidian Sync | Built-in | Real-time |
+| Vault git history | GitHub (private) | `git push` | Daily (NightCrew) |
+| iCloud documents | Apple iCloud | Built-in | Real-time |
+| External SSD | Time Machine / manual | Periodic backup | Weekly |
+| Credentials | 1Password | Built-in sync | Real-time |
+
+### The NightCrew Backup Stage
+
+NightCrew's final stages handle git operations:
+1. Stage files changed during the day
+2. Commit with descriptive message
+3. Push to remote
+4. Log the sync result
+
+This ensures that even if Obsidian Sync fails, there is a git-based backup of all critical files.
+
+## Portability
+
+If you need to move InnerOS to a new machine:
+
+1. Install prerequisites (see [Prerequisites](/getting-started/prerequisites))
+2. Clone the git repo (restores vault + `_System`)
+3. Run the symlink setup (see [Installation](/getting-started/installation))
+4. Copy `~/.secrets` from secure backup
+5. Plug in the external SSD (projects and archives are immediately available)
+
+The internal SSD footprint is small enough that migration takes under 30 minutes.

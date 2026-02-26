@@ -1,0 +1,52 @@
+# Getting Started
+
+Set up InnerOS on your machine in under 30 minutes. This section walks you through prerequisites, installation, and your first interaction with the system.
+
+## What You're Setting Up
+
+InnerOS is not a single application. It is a coordinated system of three layers that work together:
+
+| Layer | What It Does | Key Components |
+|-------|-------------|----------------|
+| **Agent Layer** | Autonomous reasoning and task execution | 76 Claude Code agents across 9 domains |
+| **Command/Skill Layer** | Deterministic procedures you invoke directly | 88 slash commands and skills |
+| **Automation Layer** | Background pipelines that run on schedule | 21-stage NightCrew, cron jobs, data fetchers |
+
+By the end of setup, you will have a working Obsidian vault with the PARA structure, Claude Code configured with agents and commands symlinked from the vault, and the ability to run your first coaching session.
+
+## Setup Path
+
+```
+1. Prerequisites (5 min)
+   Verify you have the required tools installed.
+
+2. Installation (15 min)
+   Clone the repo, create symlinks, configure Obsidian.
+
+3. Quick Start (10 min)
+   Run /contxt, explore agents, try a coaching session.
+```
+
+## Before You Begin
+
+InnerOS was designed around a specific set of constraints:
+
+- **ADHD as a design constraint.** Every interaction is optimized for executive function. Short prompts, clear next actions, no ambiguity. If setup feels overwhelming, that is a signal something needs to be simplified further.
+- **Local-first.** Your data stays on your machine. Obsidian vaults are local markdown files. Claude Code runs locally. No cloud dependency beyond Obsidian Sync (optional) and the Claude API.
+- **Inspectable.** Every agent, command, and automation step is a readable file. Nothing is hidden behind a proprietary format.
+
+## Minimum Time Investment
+
+| Phase | Time | What You Get |
+|-------|------|-------------|
+| Prerequisites + Install | 20 min | Working system |
+| Quick Start | 10 min | First coaching session, context loading |
+| Customize Identity | 30 min | Personal `master_context.md` |
+| Add Data Sources | 1-2 hours | Health, finance, calendar integrations |
+| Full NightCrew Setup | 2-3 hours | Nightly automation pipeline |
+
+Start with the first 30 minutes. Everything else is incremental.
+
+## Next Steps
+
+Head to [Prerequisites](/getting-started/prerequisites) to verify your system is ready.

@@ -1,0 +1,308 @@
+# Your Agents
+
+Agents are the active intelligence layer of InnerOS. Each agent is a markdown file that defines a specialized persona with specific knowledge, tools, and behaviors. InnerOS ships with 76 agents across 9 domains -- but the real power comes from building agents tailored to your life.
+
+## Agent Anatomy
+
+Every agent is a markdown file in `~/.claude/agents/`:
+
+```markdown
+# Agent: domain-task-name
+
+## Role
+One sentence describing what this agent does.
+
+## Context
+What this agent needs to know to do its job well.
+References to vault files it should read.
+
+## Tools
+Which tools/scripts this agent can use.
+
+## Behavior
+How this agent should interact:
+- Communication style
+- Decision-making approach
+- When to escalate to human
+
+## Triggers
+When this agent should be invoked:
+- Specific commands
+- Conditions in data
+- Scheduled cadence
+
+## Examples
+Example interactions showing ideal behavior.
+```
+
+## Agent Types
+
+InnerOS uses four categories of agents:
+
+### 1. Task Agents (Most Common)
+
+Execute specific, repeatable tasks within a domain.
+
+```markdown
+# Agent: email-triager
+
+## Role
+Classify and route incoming emails by urgency and category.
+
+## Context
+Read: 2_Areas/Comms/Email/agents.md for classification rules.
+
+## Tools
+- Email API (read, label, archive)
+- LLM classification (gpt-4o-mini for cost efficiency)
+
+## Behavior
+- Process up to 100 emails per run
+- Never delete -- only archive or label
+- Flag anything mentioning money, deadlines, or family as "urgent"
+- Batch newsletters for weekend reading
+
+## Output
+Structured summary:
+- X emails processed
+- Y urgent, Z important, W archived
+- List of urgent items requiring attention
+```
+
+### 2. Coaching Agents
+
+Guide reflection and decision-making through personas.
+
+```markdown
+# Agent: shadow-coach
+
+## Role
+Challenge blind spots, flag avoidance patterns, and ask
+uncomfortable but necessary questions.
+
+## Context
+Read: master_context.md (especially "Patterns" section)
+Read: Coaching/Coaches/07_The_Shadow.md for persona definition
+
+## Behavior
+- Never give easy answers
+- Ask probing questions: "What are you avoiding?"
+- Reference past patterns: "You did this same thing last quarter"
+- Be compassionate but direct
+- Do not let the user change the subject when something lands
+
+## Triggers
+- Weekly review flags avoidance pattern
+- User explicitly asks for Shadow check-in
+- Domain score drops for 2+ consecutive quarters
+```
+
+### 3. Monitor Agents
+
+Watch for conditions and alert when thresholds are crossed.
+
+```markdown
+# Agent: defi-monitor
+
+## Role
+Track DeFi positions and alert when action is needed.
+
+## Context
+Read: 2_Areas/Finance/DeFi/positions.md for current positions
+Read: 2_Areas/Finance/DeFi/strategies.md for risk thresholds
+
+## Tools
+- On-chain data APIs
+- Price feed APIs
+- Telegram notification (via bridge)
+
+## Behavior
+- Check positions every 15 minutes
+- Alert if: value drop > 5%, yield < threshold, IL > limit
+- Log all snapshots to tracking database
+- Never execute trades -- only recommend
+
+## Thresholds (configurable)
+| Metric | Warning | Critical |
+|--------|---------|----------|
+| Value change (24h) | -3% | -5% |
+| Yield vs. baseline | -20% | -50% |
+| Impermanent loss | 1% | 3% |
+```
+
+### 4. Orchestrator Agents
+
+Coordinate multi-step workflows involving other agents.
+
+```markdown
+# Agent: weekly-review-orchestrator
+
+## Role
+Coordinate the weekly review pipeline end-to-end.
+
+## Steps
+1. Prompt user for questionnaire responses
+2. Trigger data fetch script (weekly_data_fetcher.py)
+3. Wait for script completion
+4. Synthesize questionnaire + data into 3 output files
+5. Update weekly index
+6. Commit to git
+
+## Coordination
+- Calls: data-fetcher (script), synthesis-agent (agent)
+- Depends on: calendar API, git access
+- Outputs to: Tracking/Logs/weekly/
+```
+
+## Building Your First Agent
+
+### Step 1: Identify the Need
+
+Ask: "What task do I do repeatedly that requires judgment but follows a pattern?"
+
+Good candidates:
+- Triaging incoming items (email, messages, files)
+- Reviewing data and summarizing trends
+- Coaching check-ins for specific life areas
+- Preparing for recurring meetings or reviews
+
+### Step 2: Write the Definition
+
+```bash
+cat > ~/.claude/agents/my-first-agent.md << 'AGENT'
+# Agent: morning-focus
+
+## Role
+Help the user start their day with clarity by reviewing
+priorities and setting a single focus intention.
+
+## Context
+Read: Self_Context/master_context.md (current priorities section)
+Read: Auto Updates/morning_brief_latest.md (today's brief)
+Read: Goals/Quarterly/current.md (quarterly OKRs)
+
+## Behavior
+- Be brief: the morning is not for long conversations
+- Present the top 3 candidate tasks for the day
+- Ask the user to pick ONE as their primary focus
+- Suggest a specific first action for that task
+- Check energy level (1-5) and adjust suggestion accordingly
+- Total interaction should take < 3 minutes
+
+## Output Format
+1. Three task candidates (one sentence each)
+2. User picks one
+3. Agent provides: first action, location of relevant files,
+   estimated duration
+4. Confirmation and sign-off
+
+## Example
+Agent: Good morning. Your brief shows 2 meetings today
+       and 3 open commitments. Top candidates:
+
+       1. Finish Q1 planning doc (due Friday)
+       2. Review pull request from team (requested yesterday)
+       3. Write weekly newsletter (overdue by 2 days)
+
+       Which is your #1 today?
+
+User:  Newsletter.
+
+Agent: Got it. Your draft is in Drafts/newsletter-w3.md.
+       You left off at the second section. First action:
+       re-read what you wrote and add one paragraph.
+       Estimated time: 45 minutes.
+AGENT
+```
+
+### Step 3: Test It
+
+```bash
+# Invoke the agent
+claude --agent morning-focus
+
+# Or reference it in a command
+/focus  # (if you wire it up as a skill)
+```
+
+### Step 4: Iterate
+
+After a week of use, refine:
+- Is the context sufficient? Add or remove files.
+- Is the behavior right? Adjust the tone and format.
+- Is it useful? If not, archive or redesign.
+
+## Agent Design Patterns
+
+### Pattern: Context Loading
+
+Only load what the agent needs:
+
+```markdown
+## Context
+# Always load (small, essential)
+Read: Self_Context/llm_instructions.md
+
+# Load for this domain
+Read: Self_Context/health.md
+
+# Load conditionally (if referenced)
+If user mentions medication: Read 2_Areas/Health/medication_log.md
+```
+
+### Pattern: Escalation Rules
+
+Define when the agent should stop and ask for human input:
+
+```markdown
+## Escalation
+- If confidence < 70% on a classification, flag for human review
+- If the task involves spending money, always confirm
+- If data is missing or stale (>7 days old), warn the user
+- If the user seems emotionally activated, suggest a coaching agent
+```
+
+### Pattern: Output Contracts
+
+Define exactly what the agent produces:
+
+```markdown
+## Output Contract
+This agent ALWAYS produces:
+1. A structured summary (markdown)
+2. A list of action items (checkbox format)
+3. Updated tracking data (appended to log)
+
+This agent NEVER produces:
+- Free-form essays
+- More than 5 action items
+- Recommendations without supporting data
+```
+
+## Agent Registry
+
+Maintain a registry of all your agents:
+
+```markdown
+# Agent Registry
+
+| Agent | Domain | Type | Trigger | Status |
+|-------|--------|------|---------|--------|
+| morning-focus | Productivity | Task | /focus | Active |
+| email-triager | Comms | Task | NightCrew | Active |
+| shadow-coach | Growth | Coaching | Manual | Active |
+| defi-monitor | Finance | Monitor | LaunchAgent | Active |
+| weekly-review | Productivity | Orchestrator | /weekly-review | Active |
+| music-coach | Creative | Coaching | Manual | Draft |
+```
+
+## How Many Agents Do You Need?
+
+| Stage | Agent Count | Focus |
+|-------|-------------|-------|
+| Getting started | 3-5 | Core productivity + 1-2 domains |
+| Established | 10-20 | All active domains covered |
+| Advanced | 30-50 | Specialized agents within domains |
+| Full InnerOS | 50-80 | Complete life management |
+
+Start with fewer, better-defined agents. A well-crafted agent with clear context is worth more than ten vague ones.

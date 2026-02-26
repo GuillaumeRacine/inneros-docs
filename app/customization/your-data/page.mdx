@@ -1,0 +1,324 @@
+# Your Data Sources
+
+Data sources are the sensory organs of InnerOS. Without data, agents and workflows operate on vibes. With data, they operate on evidence. The goal is to connect every life domain to at least one quantitative signal.
+
+## Data Source Principles
+
+### 1. Automate Collection, Humanize Interpretation
+
+```
+Data collection  → Deterministic (scripts, APIs, databases)
+Data interpretation → Probabilistic (agents, human judgment)
+```
+
+Never rely on a human to remember to log data. If a device, app, or API can provide it, automate the collection.
+
+### 2. Metadata Over Content
+
+For sensitive sources (messages, emails), capture metadata -- not content:
+
+```python
+# Good: metadata only
+{"date": "2026-01-14", "messages_sent": 12, "messages_received": 8,
+ "active_conversations": 5, "busiest_hour": 14}
+
+# Bad: content capture
+{"messages": [{"text": "Hey, can you pick up groceries?", ...}]}
+```
+
+### 3. Local-First Storage
+
+All data stays on your machine unless explicitly pushed to a private remote:
+
+```
+Tracking/
+├── Logs/              # Human-readable logs (weekly, monthly)
+│   ├── weekly/
+│   ├── monthly/
+│   └── nightcrew/
+├── Data/              # Machine-readable data
+│   ├── health/
+│   ├── finance/
+│   ├── activity/
+│   └── communication/
+└── Exports/           # Raw exports from apps (read-only)
+```
+
+## Common Data Sources
+
+### Health Wearables
+
+| Device | Data Available | Access Method |
+|--------|---------------|---------------|
+| Oura Ring | Sleep score, HRV, readiness, temperature | Oura API (OAuth) |
+| WHOOP | Recovery, strain, sleep performance | WHOOP API (OAuth) |
+| Apple Watch | Activity, heart rate, workouts, steps | Apple Health Export (XML) |
+| Smart Scale | Weight, body composition | Withings API or manual |
+
+#### Oura API Example
+
+```python
+import requests
+
+def fetch_oura_sleep(date, access_token):
+    url = f"https://api.ouraring.com/v2/usercollection/daily_sleep"
+    headers = {"Authorization": f"Bearer {access_token}"}
+    params = {"start_date": date, "end_date": date}
+
+    response = requests.get(url, headers=headers, params=params)
+    data = response.json()["data"][0]
+
+    return {
+        "score": data["score"],
+        "total_sleep_seconds": data["contributors"]["total_sleep"],
+        "rem_seconds": data["contributors"]["rem_sleep"],
+        "deep_seconds": data["contributors"]["deep_sleep"],
+        "efficiency": data["contributors"]["efficiency"],
+    }
+```
+
+### Calendar
+
+Access via Google Calendar API or Apple Calendar (JXA):
+
+```python
+# Google Calendar API
+from google.oauth2.credentials import Credentials
+from googleapiclient.discovery import build
+
+def fetch_calendar_events(date, credentials_path):
+    creds = Credentials.from_authorized_user_file(credentials_path)
+    service = build("calendar", "v3", credentials=creds)
+
+    start = f"{date}T00:00:00Z"
+    end = f"{date}T23:59:59Z"
+
+    events = service.events().list(
+        calendarId="primary",
+        timeMin=start,
+        timeMax=end,
+        singleEvents=True,
+        orderBy="startTime"
+    ).execute()
+
+    return [
+        {
+            "summary": e.get("summary", "Untitled"),
+            "start": e["start"].get("dateTime", e["start"].get("date")),
+            "end": e["end"].get("dateTime", e["end"].get("date")),
+            "duration_minutes": calculate_duration(e),
+        }
+        for e in events.get("items", [])
+    ]
+```
+
+### Messages (Metadata Only)
+
+#### WhatsApp (Local SQLite)
+
+```python
+import sqlite3
+
+def fetch_whatsapp_stats(date):
+    db_path = "~/Library/Group Containers/group.net.whatsapp.WhatsApp.shared/ChatStorage.sqlite"
+    conn = sqlite3.connect(os.path.expanduser(db_path))
+
+    # Core Data epoch offset
+    EPOCH_OFFSET = 978307200
+
+    query = """
+        SELECT
+            COUNT(*) as total,
+            SUM(CASE WHEN ZISFROMME = 1 THEN 1 ELSE 0 END) as sent,
+            SUM(CASE WHEN ZISFROMME = 0 THEN 1 ELSE 0 END) as received,
+            COUNT(DISTINCT ZCHATSESSION) as conversations
+        FROM ZWAMESSAGE
+        WHERE date(ZMESSAGEDATE + ?, 'unixepoch', 'localtime') = ?
+    """
+
+    result = conn.execute(query, (EPOCH_OFFSET, date)).fetchone()
+    return {
+        "total": result[0],
+        "sent": result[1],
+        "received": result[2],
+        "conversations": result[3],
+    }
+```
+
+### Git Activity
+
+```python
+import subprocess
+
+def fetch_git_stats(repo_path, since_date, until_date):
+    cmd = [
+        "git", "-C", repo_path, "log",
+        f"--since={since_date}", f"--until={until_date}",
+        "--format=%H|%ai|%s", "--no-merges"
+    ]
+    output = subprocess.check_output(cmd, text=True)
+    commits = [line.split("|") for line in output.strip().split("\n") if line]
+
+    return {
+        "commit_count": len(commits),
+        "first_commit": commits[-1][1] if commits else None,
+        "last_commit": commits[0][1] if commits else None,
+        "messages": [c[2] for c in commits],
+    }
+```
+
+### Claude Code Activity
+
+```python
+import json
+from pathlib import Path
+
+def fetch_claude_code_stats(since_date):
+    """Parse Claude Code JSONL files for session activity."""
+    projects_dir = Path.home() / ".claude" / "projects"
+    sessions = []
+
+    for jsonl_file in projects_dir.rglob("*.jsonl"):
+        with open(jsonl_file) as f:
+            for line in f:
+                entry = json.loads(line)
+                if entry.get("type") in ("user", "assistant", "progress"):
+                    timestamp = entry.get("timestamp", "")
+                    if timestamp >= since_date:
+                        sessions.append(entry)
+
+    # Calculate metrics
+    user_msgs = sum(1 for s in sessions if s["type"] == "user")
+    assistant_msgs = sum(1 for s in sessions if s["type"] == "assistant")
+
+    return {
+        "total_messages": user_msgs + assistant_msgs,
+        "user_messages": user_msgs,
+        "assistant_messages": assistant_msgs,
+        "active_hours": calculate_active_hours(sessions),
+    }
+```
+
+### Financial Data
+
+```python
+# DeFi positions (via DeFiLlama or direct RPC)
+def fetch_defi_positions(wallet_addresses):
+    positions = []
+    for address in wallet_addresses:
+        # Query protocol-specific APIs or subgraphs
+        pos = query_protocol_positions(address)
+        positions.extend(pos)
+
+    return {
+        "total_value": sum(p["value_usd"] for p in positions),
+        "positions": [
+            {
+                "protocol": p["protocol"],
+                "chain": p["chain"],
+                "value_usd": p["value_usd"],
+                "apy": p["current_apy"],
+            }
+            for p in positions
+        ],
+    }
+```
+
+## Credential Management
+
+### Recommended: Secrets Manager with Fallback
+
+```python
+# secrets_manager.py
+import os
+import subprocess
+
+def get_secret(name):
+    """
+    Fallback chain:
+    1. 1Password CLI (interactive sessions only)
+    2. Environment variable
+    3. .env file
+    """
+    # Try 1Password (if not disabled)
+    if not os.environ.get("OP_DISABLED"):
+        try:
+            result = subprocess.run(
+                ["op", "read", f"op://Agents/{name}/credential"],
+                capture_output=True, text=True, timeout=5
+            )
+            if result.returncode == 0:
+                return result.stdout.strip()
+        except (subprocess.TimeoutExpired, FileNotFoundError):
+            pass
+
+    # Try environment variable
+    env_val = os.environ.get(name)
+    if env_val:
+        return env_val
+
+    # Try .env file
+    return load_from_dotenv(name)
+```
+
+### .env File Format
+
+```bash
+# ~/path/to/scripts/.env
+OURA_ACCESS_TOKEN=your_token_here
+GOOGLE_CALENDAR_CLIENT_ID=your_id_here
+GOOGLE_CALENDAR_CLIENT_SECRET=your_secret_here
+OPENAI_API_KEY=your_key_here
+TELEGRAM_BOT_TOKEN=your_token_here
+
+# Protect the file
+# chmod 600 ~/path/to/scripts/.env
+```
+
+## Adding a New Data Source
+
+### Checklist
+
+```markdown
+- [ ] Identify the API or local database
+- [ ] Obtain credentials (API key, OAuth tokens)
+- [ ] Store credentials in secrets manager
+- [ ] Write a fetch script that returns structured data
+- [ ] Test the script manually
+- [ ] Decide where to integrate:
+      - [ ] NightCrew stage (daily batch)
+      - [ ] LaunchAgent (interval-based)
+      - [ ] On-demand (via skill/command)
+- [ ] Add to the weekly data fetcher (if applicable)
+- [ ] Document in data_feeds.md
+```
+
+### Integration Points
+
+| When to Collect | How to Integrate | Best For |
+|----------------|-----------------|----------|
+| Nightly | NightCrew stage | Daily summaries (email, messages, activity) |
+| Every N minutes | LaunchAgent | Real-time monitoring (DeFi, alerts) |
+| On demand | Skill/command | User-initiated queries (portfolio, health) |
+| Weekly | Weekly data fetcher | Batch aggregation for weekly review |
+
+## Data Quality Rules
+
+```python
+def validate_data(source_name, data):
+    """Ensure data quality before storing."""
+    checks = {
+        "not_empty": len(data) > 0,
+        "recent": data.get("timestamp", 0) > time.time() - 86400,
+        "complete": all(k in data for k in REQUIRED_FIELDS[source_name]),
+        "in_range": validate_ranges(source_name, data),
+    }
+
+    failures = [k for k, v in checks.items() if not v]
+    if failures:
+        log.warning(f"{source_name} data quality issues: {failures}")
+
+    return len(failures) == 0
+```
+
+Never trust raw data. Validate before storing, and flag anomalies in the morning brief for human review.

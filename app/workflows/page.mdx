@@ -1,0 +1,120 @@
+# Workflows
+
+InnerOS organizes life through **50+ structured workflows** running at predictable cadences. Rather than relying on willpower or memory, every recurring responsibility is encoded as a repeatable process with clear triggers, steps, and validation criteria.
+
+## Two Organizing Axes
+
+Workflows are classified along two axes:
+
+1. **Cadence** -- when does it run? (daily, weekly, monthly, quarterly, annual)
+2. **Domain** -- what life area does it serve? (health, finance, creative, family, etc.)
+
+```
+              Daily    Weekly    Monthly    Quarterly    Annual
+            ┌────────┬─────────┬──────────┬────────────┬────────┐
+Health      │ ██████ │  ████   │   ██     │     █      │   █    │
+Finance     │  ████  │  ████   │  ████    │    ███     │  ██    │
+Creative    │   ██   │   ██    │   ██     │     █      │   █    │
+Family      │ ██████ │  ████   │    █     │     █      │        │
+Learning    │  ████  │   ██    │   ██     │    ██      │   █    │
+Productivity│ ██████ │ ██████  │  ████    │   ████     │  ███   │
+            └────────┴─────────┴──────────┴────────────┴────────┘
+```
+
+## Workflow Anatomy
+
+Every InnerOS workflow follows the same structure:
+
+```yaml
+name: weekly-review
+cadence: weekly
+domain: productivity
+trigger: Sunday morning (or manual /weekly-review)
+estimated_time: 45 min
+
+steps:
+  - name: Reflect
+    type: human
+    description: Answer 8 guided questions via voice memo
+
+  - name: Fetch data
+    type: automated
+    script: weekly_data_fetcher.py
+    sources: [claude-code, git, github, calendar, health, finance]
+
+  - name: Generate review
+    type: agent
+    agent: weekly-review-agent
+    inputs: [questionnaire_answers, fetched_data]
+    outputs: [weekly_log, weekly_data, weekly_overview]
+
+  - name: Update index
+    type: automated
+    script: update_weekly_index.py
+
+validation:
+  - 3 output files exist
+  - Index updated with new entry
+  - Files committed to git
+```
+
+## Cadence Distribution
+
+| Cadence | Count | Automation Level | Typical Duration |
+|---------|-------|------------------|------------------|
+| [Daily](/workflows/daily) | 12 | High (80% automated) | 5-30 min each |
+| [Weekly](/workflows/weekly) | 8 | Medium (50% automated) | 30-60 min each |
+| [Monthly](/workflows/monthly) | 6 | Low (30% automated) | 1-2 hours each |
+| [Quarterly](/workflows/quarterly) | 4 | Manual with templates | 2-4 hours each |
+| [Annual](/workflows/annual) | 3 | Manual with templates | Full day |
+
+## Deterministic vs. Probabilistic Steps
+
+Each workflow step is classified:
+
+- **Deterministic** (skills/scripts): File moves, data fetches, API calls, report generation. These run identically every time.
+- **Probabilistic** (agents/LLMs): Synthesis, analysis, creative work, coaching. These require judgment and vary.
+- **Human** (manual input): Reflection, decision-making, physical actions.
+
+The goal is to push as many steps as possible toward deterministic execution, reserving agent reasoning for genuine ambiguity.
+
+## Workflow Registry
+
+All workflows are registered in a central index:
+
+```
+0_InnerContext/Workflows/
+├── WORKFLOW_INDEX.md        # Master registry with PARA mapping
+├── workflow_map.md          # Dependency graph
+├── all_workflows.md         # Complete inventory (50+ entries)
+├── daily_workflows.md       # Daily cadence details
+├── weekly_workflows.md      # Weekly cadence details
+├── Crypto/                  # Domain: DeFi/trading
+├── Writing/                 # Domain: content creation
+├── Music/                   # Domain: creative/music
+└── Health/                  # Domain: health/ADHD
+```
+
+The index maps each workflow to its PARA location (which Area or Project it serves), its cadence, and its automation status.
+
+## Workflow Triggers
+
+Workflows can be triggered in three ways:
+
+| Trigger | Example | Mechanism |
+|---------|---------|-----------|
+| **Scheduled** | NightCrew at 2am | macOS LaunchAgent |
+| **Manual** | `/weekly-review` | Claude Code skill |
+| **Event-driven** | New file in inbox | File watcher or agent check |
+
+Most daily workflows are fully automated via NightCrew. Weekly and above cadences involve human participation triggered by manual commands.
+
+## ADHD Design Considerations
+
+Every workflow is designed with executive function constraints in mind:
+
+- **No ambiguous starts** -- each workflow begins with a concrete first action
+- **Short steps** -- no single step takes more than 15 minutes
+- **Progress visibility** -- checklists show completion state at a glance
+- **Graceful degradation** -- skipping a day does not cascade into failure
+- **Voice-first input** -- many workflows accept voice memos instead of typed responses

@@ -1,0 +1,143 @@
+# Glossary
+
+Key terms used throughout InnerOS documentation. Terms are listed alphabetically.
+
+## A
+
+**Agent**
+A markdown file that defines an autonomous task executor with a specific domain, tools, and behavior pattern. Agents are loaded by Claude Code and execute work independently. Unlike skills (deterministic), agents use probabilistic reasoning (LLM inference). See [Agents](/agents).
+
+**Approach Trait**
+One of 8 methodology traits that define how a spawned agent solves problems. Examples: `first-principles`, `data-driven`, `contrarian`, `pragmatic`. See [Trait System](/agents/trait-system).
+
+**Area**
+A PARA category for ongoing life responsibilities that never "complete." Examples: Health, Family, Finances, Music. Areas live in `2_Areas/` within the vault.
+
+## C
+
+**Canon Indexer**
+Stage 11 of the writing pipeline. Archives published content permanently with metadata, cross-references, and topic tags. See [Writing Pipeline](/writing-pipeline).
+
+**Challenger**
+Stage 07 of the writing pipeline. A devil's advocate agent that identifies weak arguments, unsupported claims, and disengagement points in a draft. See [Writing Pipeline](/writing-pipeline).
+
+**CLAUDE.md**
+A markdown file read by Claude Code at session start, providing context and instructions. Can exist at three levels: global (`~/.claude/CLAUDE.md`), home (`~/CLAUDE.md`), and project (`<project>/CLAUDE.md`). See [Settings](/reference/settings).
+
+**Coach**
+A markdown file that defines a guided reflection persona. Unlike agents, coaches ask questions rather than execute tasks. InnerOS includes 16 coaching personas across personal, temporal, and specialist categories. See [Coaching](/coaching).
+
+**Command**
+A slash-invoked (`/command-name`) deterministic procedure defined as a markdown file in `~/.claude/commands/`. Commands run predefined steps, while agents reason through ambiguous tasks. See [Skills & Commands](/skills-commands).
+
+**Completion Promise**
+An objective success condition that determines when an autonomous task is done. Examples: "all tests pass," "all items in todo.md are checked," "build completes with zero errors." Agents do not self-determine completion -- the promise determines it.
+
+## D
+
+**Data Source**
+An external system integrated with InnerOS through a Python script. Data sources write structured markdown to the vault, where agents can read and reason over the data. InnerOS connects to 12+ sources. See [Data Sources](/data-sources).
+
+## E
+
+**Expertise Trait**
+One of 10 domain knowledge traits that define what a spawned agent knows. Examples: `financial-analyst`, `systems-thinker`, `data-scientist`. See [Trait System](/agents/trait-system).
+
+## F
+
+**Five-Part Framework**
+The structural foundation for all InnerOS coaches, adapted from Mark Manson's model. Parts: Awareness, Acceptance, Responsibility, Values Alignment, Action. See [Framework](/coaching/framework).
+
+## H
+
+**Hook**
+A shell script that executes before or after a Claude Code tool call. Hooks enforce guardrails without relying on the agent to remember rules. Three types: PreToolUse, PostToolUse, Stop. See [Hooks](/skills-commands/hooks).
+
+**Hybrid Pattern**
+A workflow design that combines skills (deterministic) and agents (probabilistic). Skills fetch and format data; agents reason over it. Example: a skill fetches calendar data, an agent decides which meetings to prioritize.
+
+## I
+
+**InnerOS**
+The complete personal operating system: agents, commands, coaches, workflows, data sources, and automation pipelines. Built on Claude Code and Obsidian, it manages life domains through a combination of deterministic procedures and probabilistic reasoning.
+
+**Iteration Bound**
+Maximum number of agent turns allowed before a task escalates to a human. Defaults: small tasks (3-5), medium refactors (5-10), large migrations (10-25). Prevents infinite loops in autonomous operation.
+
+## M
+
+**Mark Manson Framework**
+The personal development model adapted for InnerOS coaching. Based on five parts: Awareness, Acceptance, Responsibility, Values Alignment, and Action. Each coach customizes this framework for its domain.
+
+## N
+
+**NightCrew**
+A 21-stage nightly automation pipeline that runs while the user sleeps. Stages include file organization, communication triage, data aggregation, photo review, and morning brief preparation. See [Automation](/automation/nightcrew).
+
+## O
+
+**Orchestrator**
+An agent that coordinates other agents and skills in a pipeline. The Writing Pipeline Orchestrator (Stage 00) manages the 13-stage content creation flow. The NightCrew Orchestrator coordinates the 21 nightly stages.
+
+## P
+
+**PARA**
+An organizational method by Tiago Forte: **P**rojects (time-bound work), **A**reas (ongoing responsibilities), **R**esources (reference material), **A**rchives (completed items). InnerOS uses PARA as the vault's top-level structure.
+
+**Personality Trait**
+One of 10 communication style traits that define how a spawned agent interacts. Examples: `direct`, `empathetic`, `socratic`, `provocative`. See [Trait System](/agents/trait-system).
+
+**Pipeline**
+A sequence of agents and/or skills that process work through multiple stages. Examples: the 13-stage writing pipeline, the weekly review pipeline, the NightCrew's 21-stage pipeline.
+
+**Project**
+A PARA category for time-bound work with clear deliverables and end dates. Projects live in `1_Projects/` within the vault and move to `4_Archives/` when completed.
+
+## R
+
+**Resource**
+A PARA category for reference material that may be useful in the future but is not actively being worked on. Resources live in `3_Resources/` within the vault.
+
+## S
+
+**Secrets Manager**
+A Python module (`secrets_manager.py`) that resolves credentials through a three-layer fallback chain: 1Password CLI, environment variables, `.env` files. Used by all data source scripts. See [Scripts](/data-sources/scripts).
+
+**Skill**
+A deterministic procedure (script or defined steps) that produces the same output for the same input. Contrasts with agents, which use probabilistic reasoning. Skills are faster, cheaper, and more reliable for known procedures. See [Skills & Commands](/skills-commands).
+
+**Skill Pack**
+A collection of related skills bundled into a subsystem. InnerOS includes 7 packs: CORE, Writing, Coding, Research, Strategy, Coaching, Organizer. See [Skill Packs](/skills-commands/skill-packs).
+
+**Spawn**
+Creating a temporary, purpose-built agent by combining traits at invocation time. Commands: `/spawn-agent`, `/spawn-coder`, `/spawn-researcher`, `/spawn-analyst`. See [Spawning](/agents/spawning).
+
+**Stop Hook**
+A hook that runs when an agent tries to end its session. If the hook exits with a non-zero code, the agent is re-invoked with injected context. This mechanism enables autonomous task loops. See [Hooks](/skills-commands/hooks).
+
+**Style Compression**
+Stage 09 of the writing pipeline. Applies voice guidelines, removes filler, tightens prose, and polishes the final draft. See [Writing Pipeline](/writing-pipeline).
+
+## T
+
+**Temporal Coach**
+One of 4 coaching personas aligned to review cadences: Weekly Analyst (09), Monthly Synthesizer (10), Quarterly Strategist (11), Annual Reflector (12). Each guides structured reflection at its time horizon. See [Coaching](/coaching).
+
+**Trait**
+A behavioral modifier applied to spawned agents. 28 traits across three dimensions: 10 expertise, 10 personality, 8 approach. Produces 800+ possible combinations. See [Trait System](/agents/trait-system).
+
+**todo.md**
+A markdown file used for multi-step task tracking during autonomous operation. Agents read unchecked items, execute them, validate, and mark them complete. Stop hooks check todo.md to prevent premature completion.
+
+## V
+
+**Vault**
+The Obsidian markdown vault that stores all InnerOS context, knowledge, and tracking data. Organized using the PARA method. Default path: `~/Obs_Vault/`. The vault is the single source of truth for all configuration (via symlinks to `~/.claude/`).
+
+## W
+
+**Workflow**
+A defined procedure with specific steps, cadence, and triggers. Workflows may involve both agents and skills. InnerOS includes 50+ workflows across daily, weekly, monthly, quarterly, and annual cadences. See [Workflows](/workflows).
+
+**Writing Pipeline**
+A 13-stage content creation system built from specialized agents. Stages: Orchestrator, Researcher, Synthesizer, Narrative Architect, Outline Strategist, Structural Editor, Drafting, Challenger, Fact Checker, Style Compression, Distribution, Canon Indexer, Notes Agent. See [Writing Pipeline](/writing-pipeline).

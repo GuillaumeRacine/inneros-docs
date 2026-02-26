@@ -1,0 +1,172 @@
+# Automation
+
+InnerOS runs a substantial automation layer that operates independently of human attention. The philosophy is simple: **if a task is deterministic and recurring, it should not require human initiative to execute.**
+
+## Automation Architecture
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                     Human Layer                          │
+│  Claude Code CLI → Skills → Agents → Manual workflows   │
+└────────────────────────┬────────────────────────────────┘
+                         │
+┌────────────────────────┴────────────────────────────────┐
+│                   Automation Layer                        │
+│                                                          │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  │
+│  │  NightCrew   │  │  LaunchAgents│  │   Telegram    │  │
+│  │  Pipeline    │  │  (Scheduler) │  │   Bridge      │  │
+│  │  21 stages   │  │  macOS plists│  │   Remote CLI  │  │
+│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘  │
+│         │                 │                  │           │
+│  Nightly batch     Cron-like         Bot interface      │
+│  processing        scheduling        for mobile access  │
+│                                                          │
+└──────────┬────────────────┬────────────────┬────────────┘
+           │                │                │
+┌──────────┴────────────────┴────────────────┴────────────┐
+│                     Data Layer                            │
+│  Obsidian Vault │ SQLite DBs │ APIs │ File System        │
+└─────────────────────────────────────────────────────────┘
+```
+
+## Three Automation Systems
+
+| System | Purpose | Runs | Pages |
+|--------|---------|------|-------|
+| [NightCrew](/automation/nightcrew) | Batch process daily data overnight | 2:00 AM nightly | 21 stages |
+| [LaunchAgents](/automation/launchagents) | Schedule and manage all automation | Continuous | macOS plist files |
+| [Telegram Bridge](/automation/telegram-bridge) | Remote access from mobile | On-demand | Bot + skills layer |
+
+## What Gets Automated
+
+### Fully Automated (No Human Input)
+
+| Task | System | Frequency |
+|------|--------|-----------|
+| Email triage and categorization | NightCrew | Nightly |
+| Voice memo transcription | NightCrew | Nightly |
+| Photo triage and scoring | NightCrew | Nightly |
+| File organization (inbox routing) | NightCrew | Nightly |
+| Calendar sync and daily brief | NightCrew | Nightly |
+| Git backup of context files | NightCrew | Nightly |
+| DeFi position monitoring | LaunchAgent | Every 15 min |
+| Data feed collection | LaunchAgent | Varies |
+| Message metadata capture | NightCrew | Nightly |
+| Todo/commitment sync | NightCrew | Nightly |
+| Monthly data aggregation | NightCrew | 1st of month |
+| Context file mirroring | Telegram Bridge | On startup |
+
+### Semi-Automated (Human Triggers, Automated Execution)
+
+| Task | Trigger | Execution |
+|------|---------|-----------|
+| Weekly review data fetch | `/weekly-review` | Script runs 8 data sources |
+| Portfolio snapshot | `/portfolio-snapshot` | Script aggregates positions |
+| Inbox scan | `/inbox-scan` | Agent classifies and routes |
+| Publishing pipeline | `/publish-prep` | Agent formats and prepares |
+| Vault health audit | `/audit` | Script checks structure |
+
+## Automation Principles
+
+### 1. Fail Silently, Log Loudly
+
+Automation should never wake the user at 3 AM. If a stage fails, it logs the error and continues:
+
+```python
+try:
+    process_stage(stage_config)
+    log(f"Stage {stage.name}: SUCCESS")
+except Exception as e:
+    log(f"Stage {stage.name}: FAILED - {e}")
+    # Continue to next stage -- don't block the pipeline
+    continue
+```
+
+Failures are surfaced in the morning brief, not as alerts.
+
+### 2. Idempotent Stages
+
+Every automation stage can be safely re-run without side effects:
+
+```python
+# Bad: appends duplicates
+def process_emails():
+    for email in get_all_emails():
+        save_to_log(email)  # duplicates on re-run
+
+# Good: checks before writing
+def process_emails():
+    processed_ids = load_processed_ids()
+    for email in get_new_emails():
+        if email.id not in processed_ids:
+            save_to_log(email)
+            mark_processed(email.id)
+```
+
+### 3. Data Never Leaves the Machine
+
+All processing happens locally. No data is sent to external services except:
+- LLM API calls (for agent reasoning, with minimal context)
+- Git pushes (to private repositories)
+- Telegram messages (to the user's own bot)
+
+### 4. Graceful Degradation
+
+If an external API is down, the pipeline skips that stage rather than blocking:
+
+```python
+STAGE_DEPENDENCIES = {
+    "email_triage": {"required": False, "timeout": 30},
+    "voice_transcription": {"required": False, "timeout": 60},
+    "context_backup": {"required": True, "timeout": 10},
+}
+```
+
+Only stages marked `required: True` will cause the pipeline to halt on failure.
+
+## Monitoring and Observability
+
+### Pipeline Logs
+
+Every automation run produces a log:
+
+```
+Tracking/Logs/nightcrew/
+├── 2026-01-13.log
+├── 2026-01-14.log
+└── ...
+```
+
+### Health Dashboard
+
+```bash
+# Check last NightCrew run
+/nightcrew-status
+
+# Output:
+# Last run: 2026-01-14 02:00 AM
+# Duration: 47 minutes
+# Stages: 19/21 succeeded
+# Failed: stage 14 (calendar API timeout), stage 17 (Dropbox auth expired)
+# Next run: 2026-01-15 02:00 AM
+```
+
+### Uptime Tracking
+
+Weekly reviews include NightCrew uptime as a system health metric:
+
+```markdown
+## System Health
+- NightCrew uptime: 6/7 nights (85.7%)
+- Failed stages this week: 3 (all non-critical)
+- Average pipeline duration: 42 minutes
+- Longest stage: photo_triage (12 min avg)
+```
+
+## Getting Started with Automation
+
+1. Start with [NightCrew](/automation/nightcrew) to understand the nightly pipeline
+2. Set up [LaunchAgents](/automation/launchagents) for scheduling
+3. Optionally add the [Telegram Bridge](/automation/telegram-bridge) for mobile access
+4. Add your own stages following the patterns documented in each section

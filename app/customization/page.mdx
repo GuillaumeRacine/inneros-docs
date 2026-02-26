@@ -1,0 +1,151 @@
+# Customization
+
+InnerOS is designed to be forked and personalized. Every component -- from identity context to agent definitions to automation pipelines -- is a plain-text file that you can inspect, modify, and replace.
+
+This section walks you through adapting InnerOS for your own life.
+
+## What to Customize (and in What Order)
+
+```
+Step 1: YOUR IDENTITY
+Define who you are, what matters to you, and how you want to be supported.
+→ master_context.md, llm_instructions.md
+
+Step 2: YOUR DOMAINS
+Map your life areas to PARA folders and define tracking for each.
+→ PARA structure, area definitions
+
+Step 3: YOUR AGENTS
+Build or adapt agents for your specific needs and domains.
+→ Agent definitions in ~/.claude/agents/
+
+Step 4: YOUR WORKFLOWS
+Design cadence-based routines that match your life rhythm.
+→ Workflow definitions, NightCrew stages
+
+Step 5: YOUR DATA
+Connect the data sources that are relevant to your life.
+→ API integrations, database queries, file watchers
+```
+
+## Customization Levels
+
+Not everyone needs the same depth of customization. Choose your level:
+
+| Level | Effort | What You Get |
+|-------|--------|-------------|
+| **Starter** | 2 hours | Identity context + 3-5 agents + morning/evening routine |
+| **Intermediate** | 1-2 days | Full PARA setup + 10-15 agents + weekly review + basic automation |
+| **Advanced** | 1-2 weeks | Complete InnerOS with NightCrew, Telegram bridge, and all workflows |
+
+## The Golden Rule: Start Small
+
+The most common mistake is trying to set up everything at once. InnerOS was built incrementally over months. Follow this progression:
+
+```
+Week 1: master_context.md + /focus command + morning brief
+         (This alone provides massive value)
+
+Week 2: Add 2-3 domain-specific agents
+         (e.g., finance tracker, writing coach)
+
+Week 3: Set up weekly review workflow
+         (First cadence-based workflow)
+
+Week 4: Add NightCrew with 3-5 stages
+         (Start automation: email, calendar, backup)
+
+Month 2+: Expand gradually based on what you actually use
+```
+
+## File Structure for Your InnerOS
+
+```
+~/Obs_Vault/                          # Your Obsidian vault
+├── 0_InnerContext/                    # Your personal OS
+│   ├── Self_Context/
+│   │   ├── master_context.md          # ← START HERE
+│   │   ├── llm_instructions.md        # How agents talk to you
+│   │   ├── coding.md                  # Domain: technical
+│   │   ├── health.md                  # Domain: health
+│   │   └── ... (one file per domain)
+│   ├── Goals/
+│   │   ├── goals_2026.md
+│   │   └── Quarterly/
+│   ├── Workflows/
+│   │   ├── daily_workflows.md
+│   │   ├── weekly_workflows.md
+│   │   └── DomainName/
+│   └── Tracking/
+│       ├── Logs/
+│       └── Data/
+├── 1_Projects/                        # Active, time-bound work
+├── 2_Areas/                           # Ongoing life areas
+├── 3_Resources/                       # Reference material
+└── 4_Archives/                        # Completed/inactive
+
+~/.claude/                             # Claude Code configuration
+├── CLAUDE.md                          # Global instructions
+├── agents/                            # Agent definitions
+├── commands/                          # Slash commands
+├── scripts/                           # Automation scripts
+└── settings.json                      # Permissions and hooks
+```
+
+## What NOT to Customize (Yet)
+
+Some components work best with their defaults until you understand the system deeply:
+
+- **Stop hooks and validation loops** -- The autonomous task protocol works out of the box
+- **PARA folder names** -- Stick with 1_Projects, 2_Areas, 3_Resources, 4_Archives
+- **Agent communication protocol** -- The agent handoff pattern is well-tested
+- **NightCrew stage ordering** -- Dependencies between stages matter
+
+## Quick Start Checklist
+
+```markdown
+- [ ] Fork the InnerOS template repository
+- [ ] Create master_context.md (see [Your Identity](/customization/your-identity))
+- [ ] Define 3-5 life domains (see [Your Domains](/customization/your-domains))
+- [ ] Build your first agent (see [Your Agents](/customization/your-agents))
+- [ ] Set up morning + evening workflow (see [Your Workflows](/customization/your-workflows))
+- [ ] Connect 1-2 data sources (see [Your Data](/customization/your-data))
+- [ ] Run for one week and iterate
+```
+
+## Design Principles for Customization
+
+### 1. Optimize for Your Constraints
+
+InnerOS was built around ADHD as a design constraint. Your constraints might be different:
+
+| Constraint | Design Implication |
+|-----------|-------------------|
+| ADHD | Short prompts, clear next actions, no ambiguity |
+| Busy schedule | High automation, minimal manual steps |
+| Multiple roles | Strong domain separation, context switching support |
+| Privacy-focused | All local processing, no cloud dependencies |
+| Team environment | Shared agents, collaborative workflows |
+
+### 2. Build for Your Actual Life, Not Your Ideal Life
+
+Define domains and workflows for what you actually do, not what you wish you did. If you do not currently practice music, do not create 5 music workflows. Add them when the habit exists.
+
+### 3. Everything is Reversible
+
+Every customization is a text file. If something does not work:
+- Delete the file
+- Revert the git commit
+- Start over with a different approach
+
+There is no "breaking" InnerOS. The worst case is an agent that gives unhelpful output, which you can fix by editing its definition.
+
+## Customization Guides
+
+| Guide | What You'll Build |
+|-------|------------------|
+| [Your Identity](/customization/your-identity) | `master_context.md` and `llm_instructions.md` -- the foundation |
+| [Your Domains](/customization/your-domains) | PARA areas mapped to life domains with scoring |
+| [Your Agents](/customization/your-agents) | Custom agents for your specific needs |
+| [Your Workflows](/customization/your-workflows) | Cadence-based routines from daily to annual |
+| [Your Data](/customization/your-data) | Integrations with health, finance, calendar, and more |

@@ -1,0 +1,174 @@
+# Design Principles
+
+InnerOS is shaped by five core principles. These are not aspirational guidelines -- they are hard constraints enforced by the system's architecture, hooks, and validation loops.
+
+## Principle 1: ADHD as Design Constraint
+
+InnerOS was built for a brain with executive function challenges. This is not an accessibility feature bolted on after the fact. It is the primary architectural constraint.
+
+### What This Means in Practice
+
+| Aspect | Non-ADHD Design | ADHD-First Design |
+|--------|-----------------|-------------------|
+| Options | "Here are 5 approaches..." | "Do this next." |
+| Context | "Remember to load these files..." | Context loads automatically |
+| Lists | 20-item backlogs | 3 items max, prioritized |
+| Prompts | Open-ended questions | Specific, answerable in one sentence |
+| Sessions | "What would you like to work on?" | System suggests based on time, energy, priorities |
+| Follow-up | "Let me know if you need anything" | Next action is always explicit |
+
+### Implementation
+
+- **`/focus` command.** When executive function is offline, run `/focus`. It reads your current priorities, time of day, energy level (from health data if available), and tells you the single most important thing to do right now.
+- **Auto-context loading.** The `/contxt` command loads identity, priorities, and domain context automatically. You never manually assemble context.
+- **Coaching personas.** When you are stuck, you do not have to diagnose why. Say what you are feeling and the system routes to the right coach (The Body for dysregulation, The Operator for procrastination, The Shadow for avoidance).
+- **NightCrew.** The nightly pipeline handles all the organizational tasks that ADHD brains consistently deprioritize: filing, triaging, updating trackers, generating summaries.
+
+### The Rule
+
+> If a human has to remember to do it, it should be automated.
+> If a human has to choose between options, the system should choose and present one.
+
+## Principle 2: Non-Deterministic Reasoning + Deterministic Control
+
+AI agents are probabilistic. They may reason differently about the same input on different runs. This is a feature for creative and judgment tasks. It is a bug for file operations, data transformations, and validation.
+
+### The Decision Framework
+
+```
+Is the task...
+│
+├── Well-defined with known inputs/outputs?
+│   └── YES: Use SKILL (deterministic script)
+│
+├── Requiring creativity, judgment, or synthesis?
+│   └── YES: Use AGENT (LLM reasoning)
+│
+├── A mix of both?
+│   └── YES: Use HYBRID (skill orchestrates, agent reasons)
+│
+└── Unclear?
+    └── Start with AGENT. If it does the same thing 3x, extract a SKILL.
+```
+
+### Examples
+
+| Task | Layer | Why |
+|------|-------|-----|
+| Move files to archive | Skill | Known operation, no judgment needed |
+| Analyze weekly health trends | Agent | Requires pattern recognition, interpretation |
+| Fetch API data, format as markdown | Skill | Known I/O, deterministic transformation |
+| Write a Substack post | Agent | Creative, requires voice and judgment |
+| Triage 50 emails into categories | Agent | Requires reading comprehension, context |
+| Generate morning brief from data | Hybrid | Skill gathers data, agent synthesizes narrative |
+
+### Anti-Pattern: Using Agents for Deterministic Work
+
+Every time an agent does file moves, data formatting, or API calls, you are paying token costs for work a bash script could do for free. Worse, the agent might do it differently each time. Extract deterministic work into skills.
+
+## Principle 3: Validation is Non-Optional
+
+No task is "done" until validation passes. This is enforced architecturally, not by convention.
+
+### Validation Types
+
+| Type | When Required | Command |
+|------|--------------|---------|
+| Unit tests | After logic changes | `npm test`, `pytest` |
+| Type checking | After TypeScript/typed Python changes | `tsc --noEmit`, `mypy` |
+| Linter/formatter | After any code changes | `eslint`, `ruff` |
+| Build | After compilation-affecting changes | `npm run build` |
+| Visual verification | After UI/TUI changes | Run the app, take screenshot |
+| Vault audit | After vault structure changes | `/audit` |
+
+### The Validation Loop
+
+```
+1. Implement change
+2. Run applicable validations
+3. If FAIL → Fix and return to step 2
+4. If PASS → Run the application, verify output
+5. If visual change → Take screenshot
+6. Mark task complete ONLY after all checks pass
+```
+
+### What "Complete" Means
+
+A task is complete when ALL of the following are true:
+- Implementation is finished
+- All applicable validations pass
+- The change has been verified by running the actual application
+- Results are observable (not just "it compiled")
+
+## Principle 4: Agents Do Not Self-Determine Completion
+
+This is the most counterintuitive principle. An AI agent running autonomously must never decide on its own that it is "done."
+
+### Why
+
+LLMs are biased toward completion. They will generate a plausible-sounding summary, declare success, and stop -- even when the work is incomplete or incorrect. InnerOS prevents this with external completion criteria.
+
+### How It Works
+
+Every autonomous task has three parameters:
+
+```
+Task: <clear, scoped, concrete description>
+Max iterations: <number>
+Completion promise: <objective success condition>
+```
+
+The agent runs until:
+1. The completion promise is objectively satisfied (tests pass, all items checked, build succeeds), OR
+2. Max iterations are reached (task escalates to human)
+
+The agent does NOT stop because:
+- It "feels" done
+- It has made "significant progress"
+- It has "addressed the main issues"
+
+### Completion Promise Examples
+
+| Promise | Objective Check |
+|---------|----------------|
+| "All unit tests pass" | `npm test` exits 0 |
+| "All items in todo.md are checked" | No unchecked `- [ ]` lines remain |
+| "Build completes with zero errors" | `npm run build` exits 0 |
+| "Vault audit reports zero issues" | `/audit` output contains no findings |
+
+### Iteration Bounds
+
+| Task Size | Default Max Iterations |
+|-----------|----------------------|
+| Small (single file) | 3-5 |
+| Medium (multi-file) | 5-10 |
+| Large (codebase-wide) | 10-25 |
+
+## Principle 5: Everything is Inspectable
+
+There are no black boxes in InnerOS. Every component is a readable file.
+
+| Component | Format | Location |
+|-----------|--------|----------|
+| Agents | Markdown | `~/.claude/agents/*.md` |
+| Commands | Markdown | `~/.claude/commands/*.md` |
+| Skills | Markdown + embedded scripts | `~/.claude/skills/` |
+| Workflows | Markdown | `~/Obs_Vault/0_InnerContext/Workflows/` |
+| Automation | Python/Bash scripts | `~/.claude/scripts/` |
+| Context | Markdown | `~/Obs_Vault/0_InnerContext/Self_Context/` |
+| Tracking | Markdown | `~/Obs_Vault/0_InnerContext/Tracking/` |
+
+### Why Markdown
+
+- Agents parse markdown efficiently
+- Obsidian is markdown-native
+- Clean text without formatting artifacts
+- Easy to grep, split, search, and reference
+- Git-friendly (meaningful diffs)
+- Human-readable without special tools
+
+### The Transparency Test
+
+> Can a new user read this component and understand what it does in under 60 seconds?
+
+If not, the component needs better documentation or decomposition.

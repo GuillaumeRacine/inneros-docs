@@ -1,0 +1,284 @@
+# Creating Commands
+
+A slash command is a markdown file in `~/.claude/commands/` that defines a deterministic procedure Claude Code will execute when you type `/command-name` in a conversation.
+
+## Quick Start
+
+Create `~/.claude/commands/hello.md`:
+
+```markdown
+# Hello
+
+Say hello and print today's date.
+
+$BASH
+echo "Hello! Today is $(date '+%A, %B %d, %Y')"
+$ENDBASH
+```
+
+Now type `/hello` in Claude Code and it runs.
+
+## File Location
+
+```
+~/.claude/commands/
+├── audit.md
+├── contxt.md
+├── dn.md
+├── focus.md
+├── weekly-review.md
+└── ...
+```
+
+**Naming rules:**
+- File name becomes the command name: `focus.md` -> `/focus`
+- Use `kebab-case` for multi-word names: `weekly-review.md` -> `/weekly-review`
+- No spaces, no uppercase, no underscores in file names
+
+## Command File Structure
+
+### Basic Format
+
+```markdown
+# Command Name
+
+Brief description of what this command does.
+
+## Usage
+/command-name [optional-args]
+
+## Steps
+
+$BASH
+# Shell commands to execute
+your_script_here.sh
+$ENDBASH
+```
+
+### Full Format with All Sections
+
+```markdown
+# Command: vault-audit
+
+Run a health check on the Obsidian vault, reporting orphaned files,
+broken links, and missing index files.
+
+## Usage
+/audit [--fix] [--section <name>]
+
+## Arguments
+- `--fix` -- Automatically fix simple issues (missing indexes, broken links)
+- `--section` -- Limit audit to a specific vault section
+
+## Prerequisites
+- Obsidian vault exists at ~/Obs_Vault
+- Node.js installed (for link validation script)
+
+## Steps
+
+### 1. Check vault structure
+$BASH
+echo "=== Vault Structure Check ==="
+for dir in 0_InnerContext 1_Projects 2_Areas 3_Resources 4_Archives; do
+  if [ -d "$HOME/Obs_Vault/$dir" ]; then
+    echo "✓ $dir exists ($(find "$HOME/Obs_Vault/$dir" -name '*.md' | wc -l) files)"
+  else
+    echo "✗ $dir MISSING"
+  fi
+done
+$ENDBASH
+
+### 2. Find orphaned files
+$BASH
+echo "=== Orphaned Files ==="
+# Files not linked from any other file
+python3 ~/Obs_Vault/_System/Claude_Code/Scripts/find_orphans.py
+$ENDBASH
+
+### 3. Validate links
+$BASH
+echo "=== Broken Links ==="
+python3 ~/Obs_Vault/_System/Claude_Code/Scripts/validate_links.py
+$ENDBASH
+
+## Output
+Prints a structured report to stdout. If `--fix` is passed,
+also modifies files in place.
+
+## Related Commands
+- `/inbox-scan` -- Check for untriaged items
+- `/weekly-review` -- Full weekly health check
+```
+
+## The `$BASH` Block
+
+The `$BASH...$ENDBASH` pattern marks shell commands for execution:
+
+```markdown
+$BASH
+echo "This runs in the shell"
+ls -la ~/some/path
+python3 script.py --arg value
+$ENDBASH
+```
+
+**Rules:**
+- Each `$BASH` block runs in a fresh shell (state does not persist between blocks)
+- Use absolute paths (working directory is not guaranteed)
+- Commands run with the user's permissions
+- Stdout and stderr are captured and shown in the conversation
+
+### Multiple Blocks
+
+Use multiple `$BASH` blocks for distinct steps:
+
+```markdown
+### Step 1: Gather data
+$BASH
+python3 ~/scripts/fetch_data.py --output /tmp/data.json
+$ENDBASH
+
+### Step 2: Process data
+$BASH
+python3 ~/scripts/process.py --input /tmp/data.json --output /tmp/report.md
+$ENDBASH
+
+### Step 3: Display results
+$BASH
+cat /tmp/report.md
+$ENDBASH
+```
+
+Claude Code reads the markdown between blocks, so you can add instructions, context, or conditional logic in natural language between the shell blocks.
+
+## Arguments and Variables
+
+Commands can accept arguments. Claude Code passes them as context that the LLM interprets:
+
+```markdown
+# Command: triage
+
+Route a file to its correct vault location.
+
+## Usage
+/triage <file-path> [destination]
+
+## Steps
+
+Read the file at the provided path. Based on its content:
+- If it's a project document → move to `1_Projects/`
+- If it's an area reference → move to `2_Areas/`
+- If it's a resource → move to `3_Resources/`
+- If a destination is specified, use that instead.
+
+$BASH
+# The LLM will fill in the actual paths based on its analysis
+mv "$SOURCE" "$DESTINATION"
+$ENDBASH
+```
+
+Because commands are interpreted by Claude Code (an LLM), they can handle fuzzy inputs that pure shell scripts cannot.
+
+## Patterns
+
+### Data Fetcher Command
+
+Pulls data from an external source and formats it:
+
+```markdown
+# Command: metrics
+
+Pull engagement metrics from configured sources.
+
+$BASH
+python3 ~/Obs_Vault/_System/Claude_Code/Scripts/metrics_fetcher.py \
+  --format markdown \
+  --period 7d
+$ENDBASH
+
+Summarize the output above in 3 bullet points.
+```
+
+### Context Loader Command
+
+Reads files and loads them into the conversation:
+
+```markdown
+# Command: contxt
+
+Load personal context for the current session.
+
+Read the following files in order:
+1. `~/Obs_Vault/0_InnerContext/Self_Context/master_context.md`
+2. `~/Obs_Vault/0_InnerContext/Self_Context/llm_instructions.md`
+
+After reading, summarize the current priorities and constraints.
+If an argument is provided (e.g., `/contxt coding`), also load
+the domain-specific context file.
+```
+
+### Validation Command
+
+Runs checks and reports results:
+
+```markdown
+# Command: verify-changes
+
+Verify that recent code changes are correct.
+
+$BASH
+cd $PROJECT_DIR
+npm test 2>&1 | tail -20
+echo "---"
+npx tsc --noEmit 2>&1 | tail -20
+echo "---"
+npx eslint . 2>&1 | tail -20
+$ENDBASH
+
+Based on the output above:
+- If all checks pass, confirm the changes are verified
+- If any check fails, explain what failed and suggest a fix
+```
+
+## Command Design Guidelines
+
+1. **Single purpose** -- Each command does one thing well
+2. **Descriptive output** -- Print what is happening at each step
+3. **Fail loudly** -- Use `set -e` in bash blocks or check exit codes
+4. **Idempotent** -- Safe to run multiple times
+5. **No side effects** -- Unless the command name clearly implies modification (e.g., `/fix-links`)
+
+## Testing Commands
+
+Test your command before relying on it:
+
+```bash
+# In Claude Code, just type it:
+/your-command-name
+
+# Check:
+# 1. Did all bash blocks execute successfully?
+# 2. Is the output formatted correctly?
+# 3. Does it handle missing data gracefully?
+# 4. Is it safe to run repeatedly?
+```
+
+## Organizing Commands
+
+As your command library grows, use prefixes to group related commands:
+
+```
+~/.claude/commands/
+├── audit.md              # Standalone
+├── focus.md              # Standalone
+├── dev-cleanup.md        # Dev prefix
+├── dev-status.md         # Dev prefix
+├── review-weekly.md      # Review prefix
+├── review-monthly.md     # Review prefix
+└── data-fetch.md         # Data prefix
+```
+
+## Next Steps
+
+- [Skill Packs](/skills-commands/skill-packs) -- See how commands group into subsystems
+- [Hooks](/skills-commands/hooks) -- Automate command execution with hooks

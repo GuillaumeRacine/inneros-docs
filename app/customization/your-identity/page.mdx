@@ -1,0 +1,237 @@
+# Your Identity
+
+The `master_context.md` file is the foundation of InnerOS. It tells every agent who you are, what you care about, and how to support you. Without it, agents operate generically. With it, they operate as extensions of your thinking.
+
+## Why Identity Context Matters
+
+Compare these two interactions:
+
+**Without identity context:**
+```
+User: I'm overwhelmed with work
+Agent: Here are 10 time management tips...
+```
+
+**With identity context:**
+```
+User: I'm overwhelmed with work
+Agent: You mentioned your ADHD makes overwhelm feel
+       paralyzing. Let's use your protocol: name the
+       ONE thing that would create the most relief if
+       done today. Just one.
+```
+
+The second response is only possible because the agent knows about the user's ADHD, their preferred intervention style, and their established protocols.
+
+## Creating Your master_context.md
+
+### File Location
+
+```
+~/Obs_Vault/0_InnerContext/Self_Context/master_context.md
+```
+
+### Recommended Structure
+
+```markdown
+# Master Context
+
+## Core Identity
+Who you are in 2-3 paragraphs. Not a resume -- a description of how
+you think, what drives you, and what makes you tick.
+
+## Life Domains
+List your active life areas (these become your PARA Areas):
+- Domain 1: Brief description and current status
+- Domain 2: Brief description and current status
+- ...
+
+## Values and Principles
+What guides your decisions? 5-7 core values with brief explanations.
+
+## Constraints and Considerations
+What should every agent know about working with you?
+- Cognitive style (e.g., ADHD, introvert, visual thinker)
+- Communication preferences (direct, brief, no fluff)
+- Schedule constraints (family time is sacred, etc.)
+- Sensitivities (topics to handle carefully)
+
+## Current Priorities (Updated Quarterly)
+What are you focused on right now?
+1. Priority 1 with context
+2. Priority 2 with context
+3. Priority 3 with context
+
+## Professional Context
+What do you do for work? What skills do you have?
+What are you building or growing?
+
+## Personal Context
+Family situation, health considerations, hobbies,
+community involvement -- whatever is relevant.
+
+## Goals (Current Year)
+High-level annual goals with quarterly breakdown.
+```
+
+### Example Sections
+
+#### Core Identity (Example)
+
+```markdown
+## Core Identity
+
+I am a software engineer and investor in my late 30s, based in a
+major city. I build systems -- both software and personal. I think
+in frameworks and mental models, and I have a bias toward action
+over planning.
+
+I have ADHD, which means my executive function is unreliable.
+I compensate with external systems (this operating system being
+the primary one). My best work happens in focused 2-hour blocks,
+usually in the morning. Afternoons are for meetings and admin.
+
+I am a parent to a young child and a partner in a committed
+relationship. Family is my top priority, and any system that
+encroaches on family time is failing.
+```
+
+#### Constraints (Example)
+
+```markdown
+## Constraints and Considerations
+
+### Cognitive
+- ADHD: Executive function varies day to day. Provide clear
+  first actions, not open-ended options.
+- Decision fatigue: By 4 PM my decision quality drops. Automate
+  or pre-decide anything possible.
+- Hyperfocus: I can lose hours to interesting but unimportant
+  work. Agents should flag when I drift off-priority.
+
+### Communication
+- Be direct. Skip pleasantries in task contexts.
+- Use bullet points, not paragraphs.
+- If something is wrong, say so clearly. Don't soften bad news.
+- I process information best when it is structured (tables,
+  lists, hierarchies).
+
+### Boundaries
+- Family time (6-8 PM) is non-negotiable.
+- No work notifications after 9 PM.
+- Weekend mornings are personal -- no scheduled calls.
+```
+
+## Creating llm_instructions.md
+
+This companion file tells agents *how* to interact with you. While `master_context.md` is about who you are, `llm_instructions.md` is about how agents should behave.
+
+### File Location
+
+```
+~/Obs_Vault/0_InnerContext/Self_Context/llm_instructions.md
+```
+
+### Template
+
+```markdown
+# LLM Interaction Instructions
+
+## Communication Style
+- Tone: [Direct / Warm / Formal / Casual]
+- Length: [Brief / Moderate / Detailed when needed]
+- Format: [Bullets preferred / Prose OK / Tables for data]
+
+## Do This
+- Start with the most important information
+- Provide specific next actions, not general advice
+- Reference my stated priorities when making suggestions
+- Flag when I am drifting from my stated goals
+- Use my established frameworks and vocabulary
+
+## Don't Do This
+- Don't use motivational language or cheerleading
+- Don't present more than 3 options (decision fatigue)
+- Don't assume I have unlimited time or energy
+- Don't use emojis unless I use them first
+- Don't repeat information I already know
+
+## When I'm Stuck
+- Reduce scope: what is the smallest useful next step?
+- Reference past successes: "Last time you were stuck on X,
+  you did Y and it worked"
+- Name the avoidance if you see it: "This looks like the
+  pattern you identified with the Shadow coach"
+
+## When I'm Overwhelmed
+- Do NOT add to my plate
+- Help me subtract: what can be dropped, deferred, or delegated?
+- Focus on one thing only
+- Acknowledge the feeling briefly, then move to action
+```
+
+## Domain-Specific Context Files
+
+For each life domain, create a focused context file:
+
+```
+Self_Context/
+├── master_context.md     # Core identity (always loaded)
+├── llm_instructions.md   # Interaction rules (always loaded)
+├── coding.md             # Technical skills, tools, preferences
+├── health.md             # Health conditions, medications, goals
+├── music.md              # Musical background, current projects
+├── writing.md            # Writing style, audience, goals
+├── professional.md       # Work context, investment philosophy
+├── family.md             # Family dynamics, responsibilities
+└── identity.md           # Deep identity, psychology, patterns
+```
+
+Each file is 2-10 KB and is loaded **only when relevant** to the current task. This keeps context focused and prevents token waste.
+
+### Domain File Template
+
+```markdown
+# [Domain Name] Context
+
+## Current State
+Where things stand right now in this domain.
+
+## Goals
+What you are working toward (links to quarterly OKRs).
+
+## Tools and Systems
+What tools, apps, and systems you use in this domain.
+
+## Patterns and Preferences
+How you like to work in this domain. What has worked before.
+
+## Known Challenges
+Recurring difficulties and strategies that help.
+
+## Key References
+Links to relevant vault files, projects, or resources.
+```
+
+## Keeping Context Current
+
+The master context is a living document. Schedule updates:
+
+| Cadence | What to Update |
+|---------|---------------|
+| Weekly | Current priorities (if they shifted) |
+| Monthly | Goals progress, domain status |
+| Quarterly | Full review of all sections |
+| Annually | Complete rewrite of Core Identity and Goals |
+
+Agents reading stale context will give stale advice. The weekly review workflow includes a prompt to flag any context that feels outdated.
+
+## Privacy Considerations
+
+Your identity context is the most sensitive file in InnerOS. Recommendations:
+
+- **Never commit to a public repository**
+- Store in a private Obsidian vault with device-level encryption
+- If using git, ensure the repository is private
+- Strip PII if sharing examples (as done throughout this documentation)
+- Use the context mirror pattern for files that need to be accessible to automation

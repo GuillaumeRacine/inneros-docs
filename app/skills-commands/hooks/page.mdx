@@ -1,0 +1,291 @@
+# Hook System
+
+Hooks are scripts that run automatically before or after Claude Code tool invocations. They enforce guardrails, inject context, and validate outputs without relying on the agent to remember rules. Hooks are the enforcement layer that makes autonomous operation safe.
+
+## Why Hooks
+
+Agents are probabilistic. Even with clear instructions, an agent might:
+
+- Modify a file it should not touch
+- Forget to run tests after a change
+- Try to stop before the task is actually complete
+- Commit secrets to a repository
+
+Hooks solve this by intercepting tool calls at the system level. The agent does not need to know about them -- they just work.
+
+## Hook Types
+
+| Type | Timing | Purpose |
+|------|--------|---------|
+| **PreToolUse** | Before a tool runs | Block dangerous operations, validate inputs |
+| **PostToolUse** | After a tool completes | Validate outputs, trigger follow-up actions |
+| **Stop** | When agent tries to stop | Re-inject context if tasks remain incomplete |
+
+## Configuration
+
+Hooks are configured in `~/.claude/settings.json` under the `hooks` key:
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "script": "~/.claude/hooks/pre-bash.sh"
+      },
+      {
+        "matcher": "Edit",
+        "script": "~/.claude/hooks/pre-edit.sh"
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "script": "~/.claude/hooks/post-bash.sh"
+      }
+    ],
+    "Stop": [
+      {
+        "script": "~/.claude/hooks/stop-check.sh"
+      }
+    ]
+  }
+}
+```
+
+### Matcher Patterns
+
+The `matcher` field specifies which tool triggers the hook:
+
+| Matcher | Triggers On |
+|---------|-------------|
+| `"Bash"` | Any Bash command execution |
+| `"Edit"` | Any file edit |
+| `"Write"` | Any file creation |
+| `"Read"` | Any file read |
+| `"*"` | Any tool invocation |
+
+## PreToolUse Hooks
+
+Run before a tool executes. If the hook script exits with a non-zero code, the tool call is **blocked**.
+
+### Example: Protect Sensitive Files
+
+```bash
+#!/bin/bash
+# ~/.claude/hooks/pre-edit.sh
+# Block edits to sensitive files
+
+FILE_PATH="$CLAUDE_TOOL_ARG_FILE_PATH"
+
+# Block .env files
+if [[ "$FILE_PATH" == *.env* ]]; then
+  echo "BLOCKED: Cannot edit .env files"
+  exit 1
+fi
+
+# Block credentials
+if [[ "$FILE_PATH" == *credentials* ]] || [[ "$FILE_PATH" == *secrets* ]]; then
+  echo "BLOCKED: Cannot edit credential files"
+  exit 1
+fi
+
+# Block outside home directory
+if [[ "$FILE_PATH" != /Users/* ]]; then
+  echo "BLOCKED: Cannot edit files outside home directory"
+  exit 1
+fi
+
+exit 0
+```
+
+### Example: Prevent Dangerous Git Commands
+
+```bash
+#!/bin/bash
+# ~/.claude/hooks/pre-bash.sh
+# Block dangerous git operations
+
+COMMAND="$CLAUDE_TOOL_ARG_COMMAND"
+
+# Block force push
+if echo "$COMMAND" | grep -q "git push.*--force\|git push.*-f"; then
+  echo "BLOCKED: Force push is not allowed"
+  exit 1
+fi
+
+# Block hard reset
+if echo "$COMMAND" | grep -q "git reset --hard"; then
+  echo "BLOCKED: Hard reset is not allowed"
+  exit 1
+fi
+
+# Block main/master deletion
+if echo "$COMMAND" | grep -q "git branch -[dD] main\|git branch -[dD] master"; then
+  echo "BLOCKED: Cannot delete main/master branch"
+  exit 1
+fi
+
+exit 0
+```
+
+## PostToolUse Hooks
+
+Run after a tool completes. Useful for validation, logging, and triggering follow-up actions.
+
+### Example: Auto-Validate After File Changes
+
+```bash
+#!/bin/bash
+# ~/.claude/hooks/post-edit.sh
+# Run validation after any file edit
+
+FILE_PATH="$CLAUDE_TOOL_ARG_FILE_PATH"
+
+# TypeScript files: type check
+if [[ "$FILE_PATH" == *.ts ]] || [[ "$FILE_PATH" == *.tsx ]]; then
+  PROJECT_DIR=$(dirname "$FILE_PATH")
+  while [[ "$PROJECT_DIR" != "/" ]]; do
+    if [[ -f "$PROJECT_DIR/tsconfig.json" ]]; then
+      cd "$PROJECT_DIR"
+      npx tsc --noEmit 2>&1 | tail -5
+      break
+    fi
+    PROJECT_DIR=$(dirname "$PROJECT_DIR")
+  done
+fi
+
+# Python files: type check
+if [[ "$FILE_PATH" == *.py ]]; then
+  python3 -m mypy "$FILE_PATH" 2>&1 | tail -5
+fi
+
+exit 0
+```
+
+### Example: Log All Tool Usage
+
+```bash
+#!/bin/bash
+# ~/.claude/hooks/post-any.sh
+# Log all tool invocations for audit
+
+LOG_FILE="$HOME/.claude/audit/tool-log.jsonl"
+mkdir -p "$(dirname "$LOG_FILE")"
+
+echo "{\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"tool\":\"$CLAUDE_TOOL_NAME\",\"session\":\"$CLAUDE_SESSION_ID\"}" >> "$LOG_FILE"
+
+exit 0
+```
+
+## Stop Hooks
+
+The most powerful hook type. Stop hooks run when an agent attempts to end its session. If the hook exits with a non-zero code, the agent is **re-invoked with injected context**.
+
+This is the mechanism behind autonomous task loops.
+
+### Example: Completion Check
+
+```bash
+#!/bin/bash
+# ~/.claude/hooks/stop-check.sh
+# Prevent premature stops when tasks remain
+
+TODO_FILE="./todo.md"
+
+# Check if todo.md exists and has unchecked items
+if [[ -f "$TODO_FILE" ]]; then
+  REMAINING=$(grep -c '^\- \[ \]' "$TODO_FILE" 2>/dev/null || echo "0")
+  if [[ "$REMAINING" -gt 0 ]]; then
+    echo "STOP BLOCKED: $REMAINING tasks remain in todo.md"
+    echo "Continue working on unchecked items."
+    exit 1
+  fi
+fi
+
+# Check if tests pass
+if [[ -f "package.json" ]]; then
+  npm test --silent 2>/dev/null
+  if [[ $? -ne 0 ]]; then
+    echo "STOP BLOCKED: Tests are failing"
+    echo "Fix failing tests before stopping."
+    exit 1
+  fi
+fi
+
+exit 0
+```
+
+### How Stop Hooks Enable Autonomous Loops
+
+```
+Agent starts
+  │
+  ├─ Works on task 1 → marks complete
+  ├─ Works on task 2 → marks complete
+  ├─ Tries to stop
+  │     │
+  │     └─ Stop hook checks todo.md
+  │           ├─ Tasks remain? → BLOCK stop, re-inject context
+  │           └─ All done? → ALLOW stop
+  │
+  ├─ Agent continues (re-invoked)
+  ├─ Works on task 3 → marks complete
+  ├─ Tries to stop again
+  │     └─ Stop hook: all tasks complete + tests pass → ALLOW
+  │
+  └─ Agent stops (clean exit)
+```
+
+## Environment Variables
+
+Hooks receive context about the tool invocation via environment variables:
+
+| Variable | Description |
+|----------|-------------|
+| `CLAUDE_TOOL_NAME` | Name of the tool being invoked (Bash, Edit, Read, etc.) |
+| `CLAUDE_TOOL_ARG_*` | Tool arguments (e.g., `CLAUDE_TOOL_ARG_COMMAND` for Bash) |
+| `CLAUDE_SESSION_ID` | Current session identifier |
+| `CLAUDE_PROJECT_DIR` | Project directory path |
+
+## Hook File Organization
+
+```
+~/.claude/hooks/
+├── pre-bash.sh          # PreToolUse: Bash safety checks
+├── pre-edit.sh          # PreToolUse: File protection
+├── post-edit.sh         # PostToolUse: Auto-validation
+├── post-bash.sh         # PostToolUse: Command logging
+├── stop-check.sh        # Stop: Completion validation
+└── stop-autonomous.sh   # Stop: Autonomous loop re-injection
+```
+
+## Best Practices
+
+1. **Keep hooks fast** -- They run on every tool call. Slow hooks degrade the experience.
+2. **Exit 0 by default** -- Hooks should only block when there is a clear violation.
+3. **Log, don't block, when uncertain** -- If you are unsure whether to block, log it and allow.
+4. **Test hooks independently** -- Run your hook scripts manually before adding them to settings.
+5. **Use specific matchers** -- Match specific tools rather than `"*"` to avoid performance overhead.
+
+## Debugging Hooks
+
+If a hook is misbehaving:
+
+```bash
+# Test the hook directly
+CLAUDE_TOOL_NAME=Bash CLAUDE_TOOL_ARG_COMMAND="git push" bash ~/.claude/hooks/pre-bash.sh
+echo "Exit code: $?"
+
+# Check hook logs
+cat ~/.claude/audit/tool-log.jsonl | tail -20
+
+# Temporarily disable hooks
+# Remove the hook entry from ~/.claude/settings.json
+```
+
+## Next Steps
+
+- [Settings](/reference/settings) -- Full `settings.json` reference
+- [Creating Commands](/skills-commands/creating-commands) -- Commands that hooks protect
+- [Agents](/agents) -- Agents that hooks constrain

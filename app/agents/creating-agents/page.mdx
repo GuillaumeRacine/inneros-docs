@@ -1,0 +1,255 @@
+# Creating Agents
+
+An InnerOS agent is a markdown file that tells Claude Code how to behave for a specific task. No framework, no SDK, no compilation step. You write a `.md` file, drop it in `~/.claude/agents/`, and it is immediately available.
+
+## Minimal Agent
+
+The simplest possible agent:
+
+```markdown
+# Agent: morning-brief
+
+Generate a concise morning briefing from today's calendar, pending tasks, and overnight notifications.
+
+## Role
+You are a personal briefing assistant. Scan today's schedule, pending items, and any overnight updates. Produce a 5-item summary optimized for quick scanning.
+
+## Output Format
+1. **Schedule** -- Top 3 events today
+2. **Pending** -- Most urgent open item
+3. **Overnight** -- Anything that needs attention
+4. **Focus** -- Suggested deep work block
+5. **Note** -- One thing to remember
+```
+
+Save this as `~/.claude/agents/morning-brief.md` and invoke it:
+
+```bash
+claude --agent morning-brief
+```
+
+That is a working agent. Everything below makes agents more powerful and reliable.
+
+## Full Agent Structure
+
+```markdown
+# Agent: agent-name
+
+One-line description of what this agent does.
+
+## Role
+Detailed description of the agent's purpose, responsibilities,
+and the persona it should adopt.
+
+## Context
+Files and data sources this agent should read before acting.
+
+### Required Files
+- `~/Obs_Vault/path/to/context.md`
+- `~/Obs_Vault/path/to/relevant-data.md`
+
+### Optional Files
+- `~/Obs_Vault/path/to/nice-to-have.md`
+
+## Tools
+- **Bash** -- For running scripts, git commands, data fetching
+- **Read** -- For loading vault files and context
+- **Edit** -- For modifying existing documents
+- **WebSearch** -- For current information (if needed)
+
+## Constraints
+- Never modify files outside the designated output path
+- Do not make financial decisions, only surface analysis
+- Limit web searches to 3 per invocation
+- Always cite sources for factual claims
+
+## Validation
+How to verify the agent's output is correct:
+- Output file exists at expected path
+- All required sections are present
+- No placeholder text remains
+
+## Output Format
+Description of expected deliverable structure.
+
+## Examples
+
+### Example 1: Normal invocation
+Input: "Run morning brief for today"
+Expected: Structured briefing with 5 sections
+
+### Example 2: Edge case
+Input: "Run morning brief (no calendar access)"
+Expected: Graceful degradation, skip schedule section
+```
+
+## Section-by-Section Guide
+
+### Role
+
+The Role section is the most important. It defines *who* the agent is, not just *what* it does. A well-written role section includes:
+
+- **Primary responsibility** -- The one thing this agent exists to do
+- **Persona** -- How the agent communicates (direct, empathetic, analytical)
+- **Decision authority** -- What the agent can decide vs. what it escalates
+
+```markdown
+## Role
+You are a code review agent specializing in TypeScript and React. You review
+pull requests with a focus on correctness, readability, and performance.
+You are direct and specific -- every comment includes a code suggestion.
+You do not block PRs for style preferences, only for bugs and maintainability
+issues. If you are unsure whether something is a bug, flag it as a question
+rather than a blocker.
+```
+
+### Context
+
+Context files are loaded at the start of every invocation. List them explicitly so the agent knows what to read.
+
+```markdown
+## Context
+
+### Required Files
+- `~/Obs_Vault/0_InnerContext/Self_Context/coding.md` -- Coding standards and preferences
+- `~/Obs_Vault/0_InnerContext/Self_Context/workflows.md` -- Active workflow definitions
+
+### Dynamic Context
+- Current git branch and recent commits
+- Open issues in the current repository
+```
+
+**Tip:** Keep required files under 50KB total. Large context slows the agent down and wastes tokens. Link to detailed files in Optional Context that the agent can load on demand.
+
+### Tools
+
+Be explicit about which tools the agent should use. This prevents scope creep.
+
+```markdown
+## Tools
+- **Read** -- Load context files and source code
+- **Bash** -- Run `git diff`, `npm test`, `tsc --noEmit`
+- **Edit** -- Suggest code changes in-place
+```
+
+An agent given access to `Bash` can do almost anything. If your agent only needs to read and analyze, restrict it to `Read` and `Grep` only.
+
+### Constraints
+
+Constraints are the guardrails that keep agents safe and focused. Write them as explicit rules:
+
+```markdown
+## Constraints
+- Never push to remote repositories
+- Never modify files outside the current project directory
+- Do not install new dependencies without explicit approval
+- Limit total file modifications to 10 per invocation
+- Always create a new git branch for changes, never commit to main
+```
+
+### Validation
+
+Define how to verify the agent did its job correctly. This is critical for autonomous operation.
+
+```markdown
+## Validation
+1. Run `npm test` -- all tests must pass
+2. Run `tsc --noEmit` -- no type errors
+3. Run `eslint .` -- no new warnings
+4. Output file exists at `~/Obs_Vault/path/to/output.md`
+5. Output contains all required sections
+```
+
+### Output Format
+
+Specify the exact structure of the agent's deliverable. Agents produce more consistent output when given a template:
+
+```markdown
+## Output Format
+
+### File: `review-YYYY-MM-DD.md`
+
+# Code Review: [PR Title]
+
+## Summary
+[2-3 sentence overview]
+
+## Issues Found
+| Severity | File | Line | Description |
+|----------|------|------|-------------|
+| ...      | ...  | ...  | ...         |
+
+## Suggestions
+- ...
+
+## Verdict
+[APPROVE / REQUEST_CHANGES / NEEDS_DISCUSSION]
+```
+
+## Naming Conventions
+
+- **File name:** `kebab-case.md` (e.g., `code-reviewer.md`, `weekly-reviewer.md`)
+- **Agent name in header:** Match the file name without extension (e.g., `# Agent: code-reviewer`)
+- **Domain prefix (optional):** Group related agents (e.g., `writing-researcher.md`, `writing-editor.md`)
+
+## Testing Your Agent
+
+Before relying on an agent, test it manually:
+
+```bash
+# Invoke the agent
+claude --agent your-agent-name
+
+# Give it a representative task
+> "Review the last 3 commits on this branch"
+
+# Check:
+# 1. Did it read the right context files?
+# 2. Did it use the right tools?
+# 3. Did it respect its constraints?
+# 4. Is the output in the expected format?
+```
+
+## Common Patterns
+
+### Data Pipeline Agent
+
+Reads data, transforms it, writes structured output:
+
+```markdown
+## Role
+Process raw health data exports and produce a weekly health summary.
+
+## Context
+- `~/Obs_Vault/0_InnerContext/Tracking/Data/health_export.json`
+
+## Output Format
+Write summary to `~/Obs_Vault/0_InnerContext/Tracking/Logs/health-YYYY-WXX.md`
+```
+
+### Decision Support Agent
+
+Analyzes options and presents tradeoffs without making the decision:
+
+```markdown
+## Role
+Analyze investment opportunities and present a structured comparison.
+You never recommend a specific action -- you surface data, risks, and
+tradeoffs. The human decides.
+```
+
+### Orchestrator Agent
+
+Coordinates other agents and skills in a pipeline:
+
+```markdown
+## Role
+You are the NightCrew orchestrator. Execute each stage in order,
+validate outputs, and log results. If a stage fails, log the error
+and continue to the next stage.
+```
+
+## Next Steps
+
+- [Trait System](/agents/trait-system) -- Add composable traits to your agents
+- [Spawning](/agents/spawning) -- Create agents dynamically from trait combinations

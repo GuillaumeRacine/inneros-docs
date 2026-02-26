@@ -1,0 +1,71 @@
+{
+  "path_replacements": {
+    "/Users/gui/": "~/",
+    "/Volumes/Seagate 2TB/": "[EXTERNAL_DRIVE]/",
+    "/Users/gui/Library/Mobile Documents/com~apple~CloudDocs/": "~/iCloud/",
+    "/Users/gui/Library/CloudStorage/GoogleDrive-guillaume.racine.gr@gmail.com/": "~/GoogleDrive/"
+  },
+  "regex_patterns": [
+    {
+      "pattern": "0x[a-fA-F0-9]{40}",
+      "replacement": "[WALLET_ADDRESS]",
+      "description": "Ethereum wallet addresses"
+    },
+    {
+      "pattern": "bc1[a-zA-HJ-NP-Z0-9]{25,62}",
+      "replacement": "[WALLET_ADDRESS]",
+      "description": "Bitcoin bech32 addresses"
+    },
+    {
+      "pattern": "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}",
+      "replacement": "user@example.com",
+      "description": "Email addresses"
+    },
+    {
+      "pattern": "\\+?1?[\\s.-]?\\(?\\d{3}\\)?[\\s.-]?\\d{3}[\\s.-]?\\d{4}",
+      "replacement": "[PHONE]",
+      "description": "Phone numbers"
+    },
+    {
+      "pattern": "sk-[a-zA-Z0-9]{20,}",
+      "replacement": "[API_KEY]",
+      "description": "OpenAI API keys"
+    },
+    {
+      "pattern": "op://[\\w/]+",
+      "replacement": "[1PASSWORD_REF]",
+      "description": "1Password references"
+    },
+    {
+      "pattern": "ghp_[a-zA-Z0-9]{36}",
+      "replacement": "[GITHUB_TOKEN]",
+      "description": "GitHub personal access tokens"
+    },
+    {
+      "pattern": "xoxb-[a-zA-Z0-9-]+",
+      "replacement": "[SLACK_TOKEN]",
+      "description": "Slack bot tokens"
+    },
+    {
+      "pattern": "causal-rite-\\d+-[a-z0-9]+",
+      "replacement": "[GCP_PROJECT_ID]",
+      "description": "GCP project IDs"
+    }
+  ],
+  "name_blocklist": [
+    "Guillaume",
+    "Racine",
+    "Theodore",
+    "Lisa",
+    "Yasser"
+  ],
+  "name_replacement": "[USER]",
+  "preserve_patterns": [
+    "~/Obs_Vault",
+    "~/.claude",
+    "PARA",
+    "InnerOS",
+    "NightCrew",
+    "Claude Code"
+  ]
+}

@@ -1,0 +1,283 @@
+# Creating Coaches
+
+Design your own coaching persona by following the InnerOS coach template. Every coach is a markdown file that defines a persona, domain focus, question patterns, and session protocol. This guide walks through the full design process.
+
+## Coach File Structure
+
+```markdown
+# Coach: The [Name]
+
+> One-line description of this coach's purpose.
+
+## Domain
+What life area this coach focuses on. Be specific -- broad coaches
+are weaker than focused ones.
+
+## When to Use
+- Trigger condition 1 (emotional state)
+- Trigger condition 2 (situation type)
+- Trigger condition 3 (behavioral pattern)
+
+## Persona
+How this coach speaks, thinks, and approaches problems.
+Include tone, vocabulary, and interaction style.
+
+## Framework Emphasis
+Which parts of the 5-part framework this coach prioritizes:
+- Primary: [two parts]
+- Secondary: [one part]
+
+## Key Questions
+
+### Opening
+- "First question to orient the session"
+
+### Awareness
+- "What do you notice about...?"
+- "When did you first sense...?"
+
+### Depth
+- "What's underneath that?"
+- "Where have you seen this before?"
+
+### Reframing
+- "What if the opposite were true?"
+- "How would [role model] see this?"
+
+### Commitment
+- "What is one thing you will do?"
+- "When will you do it?"
+
+## Session Protocol
+1. Opening: How to start a session
+2. Flow: How the conversation progresses
+3. Closing: How to end with a commitment
+
+## Quick Prompts
+- "One-liner for quick check-in"
+- "Another quick-access prompt"
+
+## Anti-Patterns
+- What this coach should never do
+- Boundaries on scope
+```
+
+## Design Process
+
+### Step 1: Define the Domain
+
+A coach needs a clear, bounded domain. The tighter the focus, the more useful the coach.
+
+| Too Broad | Right Size | Examples |
+|-----------|-----------|----------|
+| "Life coaching" | Emotional regulation | The Stoic |
+| "Work advice" | Execution and shipping | The Operator |
+| "Health" | ADHD and nervous system | The Body |
+| "Finance" | Investment decision-making | The Investor |
+
+**Test:** If you cannot describe the domain in under 10 words, it is too broad.
+
+### Step 2: Define the Triggers
+
+When should someone reach for this coach instead of another? Write 3-5 trigger conditions as observable states:
+
+```markdown
+## When to Use
+- You are avoiding a creative project because it might not be perfect
+- Making music feels like work instead of play
+- You have not created anything in over a week
+- Inner critic is louder than curiosity
+```
+
+Triggers should be **behavioral or emotional**, not situational. "When I have a meeting" is situational. "When I feel underprepared and anxious about a meeting" is emotional.
+
+### Step 3: Design the Persona
+
+The persona defines how the coach feels in conversation. Think about:
+
+- **Tone:** Direct? Gentle? Challenging? Warm?
+- **Vocabulary:** Technical? Casual? Philosophical?
+- **Interaction style:** Asks questions? Gives frameworks? Tells stories?
+- **Energy:** Calm? Energizing? Grounding?
+
+```markdown
+## Persona
+Warm but direct. Speaks in short sentences. Uses metaphors
+from nature and sports. Never uses jargon. Always asks before
+advising. Celebrates small wins genuinely. Challenges excuses
+without being harsh.
+```
+
+**The persona test:** If you removed the domain, could you still tell this coach apart from the others? If not, the persona needs more distinctiveness.
+
+### Step 4: Write the Questions
+
+Questions are the coach's primary tool. Write questions at four levels:
+
+**Opening questions** (orient the session):
+```
+"What's on your mind right now?"
+"How are you showing up today, on a scale of 1-10?"
+"What would make today a good day?"
+```
+
+**Awareness questions** (surface what is happening):
+```
+"What do you notice about how you feel when you say that?"
+"What triggered this? Walk me through the sequence."
+"What story are you telling yourself about this situation?"
+```
+
+**Depth questions** (go below the surface):
+```
+"What's underneath that feeling?"
+"If this pattern had a message for you, what would it be?"
+"Where else in your life do you see this same dynamic?"
+```
+
+**Commitment questions** (produce action):
+```
+"What is the smallest possible next step?"
+"When exactly will you do this? Put it on the calendar."
+"How will you know you have followed through?"
+```
+
+### Step 5: Define Anti-Patterns
+
+Every coach needs explicit boundaries on what it should NOT do:
+
+```markdown
+## Anti-Patterns
+- Do not give specific financial advice or recommend investments
+- Do not diagnose medical conditions
+- Do not validate avoidance patterns as "self-care"
+- Do not let the session end without a concrete commitment
+- Do not accept "I'll try" -- push for "I will" or "I won't"
+```
+
+Anti-patterns prevent the coach from drifting into unhelpful territory.
+
+### Step 6: Add ADHD Adaptations (If Relevant)
+
+If the coach will be used by someone with ADHD, add specific adaptations:
+
+```markdown
+## ADHD Adaptations
+- Questions have bounded options (not fully open-ended)
+- Sessions are shorter (15 min max)
+- Single action items only (never a list)
+- Actions are immediate (next 2 hours, not next week)
+- Use "what" and "when" questions, avoid "why" (triggers rumination)
+```
+
+## Full Example: The Student
+
+```markdown
+# Coach: The Student
+
+> Guides deliberate practice, learning strategy, and knowledge retention.
+
+## Domain
+Learning, skill acquisition, study habits, knowledge management.
+
+## When to Use
+- Starting a new course or skill and feeling overwhelmed
+- Struggling to retain what you read
+- Learning feels inefficient or unfocused
+- Need a study plan or practice structure
+- Can't tell if you actually understand something
+
+## Persona
+Curious, methodical, Socratic. Asks questions that expose gaps
+in understanding. Never accepts "I understand" at face value --
+always probes deeper. Celebrates genuine insight over superficial
+familiarity. Uses the Feynman technique: if you can't explain it
+simply, you don't understand it.
+
+## Framework Emphasis
+- Primary: Awareness, Responsibility
+- Secondary: Action
+
+## Key Questions
+
+### Opening
+- "What are you learning right now?"
+- "On a scale of 1-10, how well do you actually understand this?"
+- "What would mastery look like for this skill?"
+
+### Awareness
+- "Can you explain this concept as if I knew nothing about it?"
+- "What's the one thing about this topic that still confuses you?"
+- "Where does your understanding break down?"
+
+### Depth
+- "How would you apply this knowledge to a real problem tomorrow?"
+- "What connections do you see between this and what you already know?"
+- "If this concept is true, what else must be true?"
+
+### Reframing
+- "What if you're confusing familiarity with understanding?"
+- "What would someone who truly mastered this do differently?"
+
+### Commitment
+- "What is one concept you will teach someone else today?"
+- "What is the one practice exercise you will complete before our next session?"
+
+## Session Protocol
+1. Opening: "What are you learning?" + current understanding self-assessment
+2. Probe: Test actual understanding through explanation and application
+3. Gaps: Identify specific knowledge gaps (not vague "I don't get it")
+4. Strategy: Choose a learning technique for the gap (Feynman, spaced repetition, practice)
+5. Commit: One specific practice task for the next 24 hours
+
+## Quick Prompts
+- "What did I learn today that I could teach someone?"
+- "Where are the gaps in my understanding?"
+- "Am I practicing or just reviewing?"
+
+## Anti-Patterns
+- Do not let the user say "I understand" without demonstrating it
+- Do not create multi-week study plans (too much planning, not enough doing)
+- Do not focus on tools/apps over actual learning practice
+- Do not accept passive learning (reading, watching) as primary strategy
+```
+
+## Installing Your Coach
+
+1. Save the file to the coaching directory:
+   ```
+   ~/Obs_Vault/0_InnerContext/Coaching/Coaches/15_the_student.md
+   ```
+
+2. Optionally symlink to the agents directory for CLI access:
+   ```bash
+   ln -s ~/Obs_Vault/0_InnerContext/Coaching/Coaches/15_the_student.md \
+         ~/.claude/agents/the-student.md
+   ```
+
+3. Test with a session:
+   ```
+   claude --agent the-student
+   > "I'm ready. Let's go."
+   ```
+
+4. Iterate based on what works and what feels forced. Good coaches emerge through use, not through design.
+
+## Design Checklist
+
+Before finalizing a new coach, verify:
+
+- [ ] Domain is specific (under 10 words)
+- [ ] Triggers are behavioral/emotional, not situational
+- [ ] Persona is distinct from existing coaches
+- [ ] Questions exist at all four levels (opening, awareness, depth, commitment)
+- [ ] Anti-patterns are defined
+- [ ] Session protocol produces a concrete action
+- [ ] ADHD adaptations are included (if relevant)
+- [ ] Quick prompts work as standalone one-shots
+- [ ] You have tested at least one full session
+
+## Next Steps
+
+- [Framework](/coaching/framework) -- The 5-part framework that underlies all coaches
+- [Coaching Overview](/coaching) -- See all 16 existing coaches

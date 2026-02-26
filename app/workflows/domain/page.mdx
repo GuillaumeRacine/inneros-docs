@@ -1,0 +1,321 @@
+# Domain-Specific Workflows
+
+Beyond cadence-based workflows, InnerOS has specialized workflows for each life domain. These workflows have domain-specific tools, data sources, and agent expertise. Nine domains are currently active.
+
+## Domain Overview
+
+| Domain | Agents | Key Workflows | Primary Data Sources |
+|--------|--------|---------------|---------------------|
+| DeFi/Trading | 8 | Position monitoring, rebalancing, yield tracking | DeFi protocols, price feeds |
+| Writing | 13 | Research, drafting, publishing, distribution | Obsidian vault, CMS, analytics |
+| Music | 4 | Practice tracking, recording, production, release | DAW, streaming platforms |
+| Home | 3 | Maintenance scheduling, contractor management, projects | Calendar, task lists |
+| Health | 6 | Workout logging, sleep analysis, medication, nutrition | Wearables, health apps |
+| Productivity | 12 | Focus sessions, time tracking, inbox triage, reviews | Calendar, git, Claude Code |
+| Media | 5 | Content consumption, highlights, reading lists | Read-later apps, RSS |
+| Family | 4 | Communication tracking, scheduling, therapy coordination | Calendar, messages |
+| Learning | 7 | Course progress, research, spaced repetition | Course platforms, notes |
+
+## DeFi and Trading
+
+The most automated domain, with agents monitoring positions around the clock.
+
+### Position Monitoring
+
+```yaml
+name: defi-position-monitor
+frequency: Every 15 minutes (automated)
+agents: dn-monitor, yield-tracker
+
+workflow:
+  - Fetch current positions from on-chain data
+  - Calculate unrealized P&L
+  - Check positions against risk thresholds
+  - Alert if any position needs attention
+  - Log snapshot to tracking database
+
+alerts:
+  - Position value drops > 5% in 24 hours
+  - Yield drops below minimum threshold
+  - Impermanent loss exceeds configured limit
+  - Gas costs exceed yield for the period
+```
+
+### Weekly DeFi Review
+
+```bash
+# Triggered via skill
+/dn
+
+# Output: Dashboard showing
+# - Active positions with current values
+# - Week-over-week yield
+# - Impermanent loss tracking
+# - Suggested rebalancing actions
+# - Gas cost summary
+```
+
+### Delta-Neutral Strategy Workflow
+
+```
+Entry Signal ──→ Position Sizing ──→ Execute Trades ──→ Monitor
+     │                  │                   │               │
+     │            Risk calculator      Multi-step TX    15-min checks
+     │            (deterministic)      (manual review)  (automated)
+     │
+  Agent analyzes
+  market conditions
+  (probabilistic)
+```
+
+## Writing
+
+The most agent-heavy domain with a full 13-stage pipeline. See the [Writing Pipeline](/writing-pipeline) section for complete documentation.
+
+### Key Workflows
+
+```yaml
+# Research workflow
+research:
+  trigger: New article idea captured
+  steps:
+    - Researcher agent gathers sources
+    - Synthesizer extracts patterns
+    - Narrative Architect proposes structure
+    - Output: Research brief in Drafts/
+
+# Publishing workflow
+publish:
+  trigger: /publish-prep
+  steps:
+    - Final review by Style Compression agent
+    - Format for target platform (Substack, blog, etc.)
+    - Generate social media excerpts
+    - Schedule publication
+    - Archive to canon after publishing
+
+# Distribution workflow
+distribute:
+  trigger: After publication
+  steps:
+    - Cross-post to configured platforms
+    - Generate newsletter version
+    - Update content index
+    - Track engagement metrics
+```
+
+## Music
+
+Music workflows bridge digital tools with physical practice.
+
+### Practice Session Workflow
+
+```yaml
+name: music-practice
+trigger: Calendar block or manual start
+duration: 60-90 minutes
+
+steps:
+  - name: Setup
+    type: automated
+    action: Load previous session notes, pull up practice plan
+
+  - name: Warm-up
+    type: human
+    duration: 10 min
+    content: Scales, finger exercises (from practice plan)
+
+  - name: Focused practice
+    type: human
+    duration: 40-60 min
+    content: Current piece or technique goal
+
+  - name: Log session
+    type: agent
+    prompt: |
+      Record what was practiced, what improved,
+      what needs more work. Update practice plan.
+
+  - name: Track progress
+    type: automated
+    action: Update practice streak, log duration
+```
+
+### Recording Session Workflow
+
+```yaml
+name: recording-session
+trigger: Scheduled block (typically evening)
+duration: 2-3 hours
+
+steps:
+  - Review project status and previous session notes
+  - Set specific goal for this session (1-2 tasks only)
+  - Execute recording/production work
+  - Export session files, update project notes
+  - Log what was accomplished and next steps
+```
+
+## Home Management
+
+Workflows for maintaining a physical space and managing home projects.
+
+### Maintenance Schedule
+
+```markdown
+## Recurring Home Tasks
+
+| Task | Frequency | Last Done | Next Due | Status |
+|------|-----------|-----------|----------|--------|
+| HVAC filter | Monthly | Jan 15 | Feb 15 | Upcoming |
+| Deep clean | Bi-weekly | Jan 20 | Feb 3 | Due soon |
+| Yard work | Seasonal | Oct 30 | Apr 1 | Dormant |
+| Appliance check | Quarterly | Dec 1 | Mar 1 | Upcoming |
+```
+
+### Home Project Tracking
+
+```yaml
+name: home-project-tracker
+trigger: /house-status
+output: Current projects with status, budget, next steps
+
+format:
+  - Project name and description
+  - Budget (estimated vs. actual)
+  - Timeline (planned vs. actual)
+  - Current status and blockers
+  - Next action with owner (self or contractor)
+```
+
+## Health
+
+Health workflows integrate data from multiple wearables and manual inputs.
+
+### Morning Health Check (Automated)
+
+```
+Oura sleep data ──────┐
+WHOOP recovery ───────┤
+Apple Watch activity ──┼──→ Health Snapshot ──→ Morning Brief
+Weight log ───────────┤
+Medication tracker ───┘
+```
+
+### ADHD Management Workflows
+
+```yaml
+# Medication tracking
+medication-tracker:
+  frequency: Daily reminders
+  data: Reminder app + manual confirmation
+  output: Adherence rate in weekly review
+
+# Energy management
+energy-check:
+  frequency: 3x daily (morning, afternoon, evening)
+  method: Quick 1-5 rating
+  output: Energy patterns over time
+  insight: Correlate with sleep, medication, activity
+
+# Focus protocol
+focus-session:
+  trigger: /focus
+  steps:
+    - Check energy level
+    - Review current priorities
+    - Set one specific task
+    - Provide low-activation-energy first step
+    - Set timer
+    - Check in at completion
+```
+
+## Family
+
+Family workflows ensure presence and coordination without over-systemizing.
+
+### Communication Cadence
+
+```markdown
+## Family Communication Targets
+
+| Person | Cadence | Method | Tracked |
+|--------|---------|--------|---------|
+| Partner | Daily | In-person | Not tracked (natural) |
+| Child | Daily | In-person | Activity log only |
+| Parent 1 | Weekly | Phone/video | Message metadata |
+| Parent 2 | Weekly | Phone/video | Message metadata |
+| Sibling | Bi-weekly | Messages | Message metadata |
+```
+
+### Therapy and Appointment Coordination
+
+```yaml
+name: family-appointment-tracker
+trigger: Automated via calendar
+output: Weekly summary of upcoming appointments
+
+tracks:
+  - Therapy sessions (schedule + notes prompt)
+  - Medical appointments
+  - School events
+  - Activity schedules
+```
+
+## Learning
+
+Learning workflows track courses, reading, and deliberate skill development.
+
+### Course Progress Tracking
+
+```yaml
+name: learning-tracker
+trigger: /learning-status
+output: Dashboard of active learning
+
+tracks:
+  - Online courses (completion %, current module)
+  - Books in progress (current page, notes taken)
+  - Research topics (sources gathered, synthesis status)
+  - Skills being developed (practice hours, milestones)
+```
+
+### Research Workflow
+
+```
+Topic identified ──→ Source gathering ──→ Reading + highlighting
+                          │                       │
+                    Researcher agent         Readwise sync
+                    (web + papers)           (automated)
+                          │                       │
+                          └───────────┬───────────┘
+                                      ▼
+                              Synthesis document
+                              (Synthesizer agent)
+                                      │
+                                      ▼
+                              Action items or
+                              writing brief
+```
+
+## Adding Domain Workflows
+
+To add a workflow for a new domain:
+
+```bash
+# 1. Create domain folder
+mkdir -p 0_InnerContext/Workflows/NewDomain/
+
+# 2. Create workflow definition
+cat > 0_InnerContext/Workflows/NewDomain/workflow_name.md << 'EOF'
+name: workflow-name
+domain: new-domain
+cadence: weekly
+...
+EOF
+
+# 3. Register in workflow index
+echo "| workflow-name | new-domain | weekly | manual |" >> WORKFLOW_INDEX.md
+
+# 4. Create agent if needed (see /customization/your-agents)
+```

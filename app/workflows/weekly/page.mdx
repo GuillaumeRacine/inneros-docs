@@ -1,0 +1,224 @@
+# Weekly Workflows
+
+The weekly review is the most important single workflow in InnerOS. It transforms raw daily data into actionable insight, reconciles commitments, and sets the direction for the coming week. Eight weekly workflows run in total, with the core review taking about 45 minutes.
+
+## Weekly Review Pipeline
+
+The review follows a three-phase pipeline: **Reflect -> Fetch -> Generate**.
+
+```
+Phase 1: REFLECT (human)          Phase 2: FETCH (automated)
+┌──────────────────────┐          ┌──────────────────────┐
+│  Voice memo or text  │          │  8 data sources      │
+│  answering guided    │──────────│  queried in parallel  │
+│  questionnaire       │          │  by Python script     │
+└──────────────────────┘          └──────────┬───────────┘
+                                             │
+                                  Phase 3: GENERATE (agent)
+                                  ┌──────────┴───────────┐
+                                  │  3 output files:      │
+                                  │  - weekly_log.md      │
+                                  │  - weekly_data.md     │
+                                  │  - weekly_overview.md  │
+                                  └──────────────────────┘
+```
+
+### Phase 1: Guided Reflection
+
+The user answers 8 questions, typically via voice memo that gets transcribed:
+
+```markdown
+## Weekly Review Questionnaire
+
+1. What were your top 3 wins this week?
+2. What didn't go as planned? What got in the way?
+3. What commitments did you make? Which did you keep?
+4. How was your energy and health this week? (1-5)
+5. What are you avoiding or procrastinating on?
+6. What do you want to focus on next week?
+7. Is there anything you need to say no to?
+8. What are you grateful for this week?
+```
+
+Voice memos are transcribed using the Whisper API and fed into the generation phase alongside the structured data.
+
+### Phase 2: Automated Data Fetch
+
+A Python script queries 8+ data sources in parallel:
+
+```python
+# weekly_data_fetcher.py (simplified)
+async def fetch_all_weekly_data(week_start, week_end):
+    tasks = [
+        fetch_claude_code_activity(week_start, week_end),
+        fetch_git_activity("personal-org", week_start, week_end),
+        fetch_git_activity("work-org", week_start, week_end),
+        fetch_github_projects(),
+        fetch_financial_summary(week_start, week_end),
+        fetch_commitments(),
+        fetch_reminders(),
+        fetch_messages_summary(week_start, week_end),
+    ]
+    results = await asyncio.gather(*tasks)
+    return compile_weekly_data(results)
+```
+
+Each data source returns a structured markdown section:
+
+| Source | Data Returned |
+|--------|--------------|
+| Claude Code | Sessions, messages, active hours, top projects |
+| Git (personal) | Commits, repos touched, lines changed |
+| Git (work) | Same, for work repositories |
+| GitHub Projects | Open items, completed items, blockers |
+| Financial | Portfolio value, DeFi positions, P&L |
+| Commitments | Made vs. kept ratio, overdue items |
+| Reminders | Completed, outstanding, overdue |
+| Messages | Communication volume by channel (metadata only) |
+
+### Phase 3: File Generation
+
+An agent combines the questionnaire answers with fetched data to produce three files:
+
+**1. `weekly_log.md`** -- The narrative record
+
+```markdown
+# Week 3 Log (Jan 13 - Jan 19)
+
+## Reflection
+[Synthesized from questionnaire answers -- what happened, how it felt,
+what was learned]
+
+## Wins
+- Shipped the portfolio rebalancing feature
+- Maintained 5/7 morning routine streak
+- Had a meaningful conversation with a family member
+
+## Challenges
+- Substack draft still not published (3rd week)
+- Sleep quality dropped mid-week after late screen time
+```
+
+**2. `weekly_data.md`** -- The raw numbers
+
+```markdown
+# Week 3 Data
+
+## Claude Code Activity
+- Sessions: 23 | Messages: 847 | Active hours: 31.2
+- Top projects: inneros-docs (12h), dn-monitor (8h)
+
+## Git Activity
+- Personal: 47 commits across 3 repos
+- Work: 12 commits across 2 repos
+
+## Health
+- Avg sleep score: 78 | Avg HRV: 42ms
+- Workout days: 4/5 target
+
+## Financial
+- Portfolio: +2.3% WoW
+- DeFi positions: 3 active, 1 needs rebalancing
+```
+
+**3. `weekly_overview.md`** -- The executive summary
+
+```markdown
+# Week 3 Overview
+
+## Score: 7/10
+Strong execution week with good shipping velocity.
+Health metrics stable. Writing remains blocked.
+
+## Key Metrics vs. Targets
+| Metric | Target | Actual | Status |
+|--------|--------|--------|--------|
+| Focus hours | 25 | 31.2 | Above |
+| Workouts | 5 | 4 | Close |
+| Writing | 1 post | 0 | Missed |
+| Sleep avg | 80+ | 78 | Close |
+
+## Next Week Focus
+1. Publish the overdue Substack draft
+2. Rebalance DeFi position
+3. Maintain morning routine streak
+```
+
+## Weekly Batch Processing
+
+Beyond the core review, several workflows batch-process weekly:
+
+### Portfolio Review
+
+```yaml
+name: portfolio-review
+cadence: weekly (Sunday)
+trigger: /portfolio-snapshot
+domain: finance
+
+steps:
+  - Fetch current positions from all sources
+  - Calculate week-over-week changes
+  - Check positions against risk thresholds
+  - Generate allocation summary
+  - Flag any positions needing attention
+```
+
+### Inbox Zero Sweep
+
+```yaml
+name: inbox-zero
+cadence: weekly (Sunday)
+trigger: /inbox-scan
+
+steps:
+  - Scan vault inbox folder for untriaged items
+  - Classify each item by domain and urgency
+  - Route to appropriate PARA location
+  - Archive or delete completed items
+  - Report on inbox health
+```
+
+### Commitment Reconciliation
+
+```yaml
+name: commitment-reconciliation
+cadence: weekly
+trigger: Automated (part of weekly review)
+
+steps:
+  - Pull all commitments made this week (from logs, messages, calendar)
+  - Compare against completed items
+  - Calculate kept/broken ratio
+  - Flag overdue commitments
+  - Carry forward to next week's focus list
+```
+
+## Weekly Index
+
+All weekly reviews are tracked in a running index:
+
+```markdown
+# Weekly Review Index
+
+| Week | Date Range | Score | Theme | Log | Data |
+|------|-----------|-------|-------|-----|------|
+| W03 | Jan 13-19 | 7/10 | Shipping velocity | [log](W03-log.md) | [data](W03-data.md) |
+| W02 | Jan 6-12 | 6/10 | Recovery week | [log](W02-log.md) | [data](W02-data.md) |
+| W01 | Jan 1-5 | 5/10 | Slow start | [log](W01-log.md) | [data](W01-data.md) |
+```
+
+This index becomes a searchable record of trends over time. Monthly and quarterly reviews pull from it to identify patterns.
+
+## Timing and Triggers
+
+| Workflow | Day | Time | Trigger |
+|----------|-----|------|---------|
+| Weekly review | Sunday | Morning | `/weekly-review` |
+| Portfolio review | Sunday | After weekly review | `/portfolio-snapshot` |
+| Inbox sweep | Sunday | Afternoon | `/inbox-scan` |
+| Commitment reconciliation | Sunday | Automated | Part of review pipeline |
+| Meal prep planning | Sunday | Evening | Manual checklist |
+| Week-ahead calendar review | Sunday | Evening | `/calendar week` |
+| Content planning | Monday | Morning | After standup |
+| DeFi position check | Wednesday | Midday | `/dn` |

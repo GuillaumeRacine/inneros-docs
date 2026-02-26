@@ -1,0 +1,200 @@
+# PARA Structure
+
+InnerOS organizes everything using the PARA method: **Projects**, **Areas**, **Resources**, **Archives**. The Obsidian vault maps directly to this structure, with one addition: `0_InnerContext`, the operating system layer that sits above PARA.
+
+## The Five Top-Level Directories
+
+```
+~/Obs_Vault/
+├── _System/            # Claude Code configuration (source of truth)
+├── 0_InnerContext/     # Operating system: identity, goals, workflows
+├── 1_Projects/         # Active, time-bound work with deadlines
+├── 2_Areas/            # Ongoing responsibilities without end dates
+├── 3_Resources/        # Reference material for future use
+└── 4_Archives/         # Completed or inactive items
+```
+
+### Why the Numbering
+
+The numeric prefix ensures folders sort in priority order in file browsers and terminal listings. `0_InnerContext` sorts first because it is the most frequently accessed. `4_Archives` sorts last because it is rarely touched.
+
+## 0_InnerContext: The Operating System
+
+This is not part of standard PARA. It is the InnerOS-specific layer that contains everything agents need to understand who the user is, what they care about, and how to operate.
+
+```
+0_InnerContext/
+├── Self_Context/        # WHO: Identity, constraints, preferences
+│   ├── master_context.md    # Primary identity file (loaded every session)
+│   ├── llm_instructions.md  # How agents should interact
+│   ├── coding.md            # Technical context
+│   ├── health.md            # Health and ADHD context
+│   ├── music.md             # Creative domain context
+│   ├── writing.md           # Writing voice and preferences
+│   ├── professional.md      # Career and investing context
+│   └── family.md            # Family context
+│
+├── Operating System/    # HOW: Values, principles, rules
+│   ├── values.md
+│   ├── principles.md
+│   ├── daily_structure.md
+│   └── boundaries.md
+│
+├── Goals/               # WHAT: Direction and targets
+│   ├── goals_2026.md
+│   ├── intentions_2026.md
+│   └── Quarterly/
+│       └── q1_2026.md
+│
+├── Workflows/           # EXECUTION: 50+ defined procedures
+│   ├── WORKFLOW_INDEX.md
+│   ├── all_workflows.md
+│   ├── daily_workflows.md
+│   ├── weekly_workflows.md
+│   ├── Crypto/
+│   ├── Writing/
+│   └── Music/
+│
+├── Coaching/            # GROW: 16 coaching personas
+│   ├── AGENTS.md
+│   └── Coaches/
+│
+├── Tracking/            # MEASURE: Metrics and data
+│   ├── metrics.md
+│   ├── data_feeds.md
+│   └── Logs/
+│
+├── Review/              # REFLECT: Review templates and history
+│   ├── Templates/
+│   └── Archive/
+│
+├── Auto Updates/        # FRESH: Machine-generated daily insights
+│   ├── daily_insights.md
+│   └── topic_trends.md
+│
+└── Data/                # RAW: Imported data (read-only)
+    ├── claude_complete_history.md
+    └── claude_code_history.md
+```
+
+### Key Files and Their Roles
+
+| File | Loaded By | Purpose |
+|------|-----------|---------|
+| `master_context.md` | Every session via `/contxt` | Primary identity source |
+| `llm_instructions.md` | Every session | Interaction style rules |
+| `all_workflows.md` | Workflow commands | Complete procedure inventory |
+| `AGENTS.md` | Agent routing | Master index of all agents |
+| `data_feeds.md` | Data fetchers | Inventory of all data sources |
+
+## 1_Projects: Active Work
+
+Projects are time-bound efforts with a clear definition of done. They have deadlines, deliverables, and end states.
+
+```
+1_Projects/
+├── inneros-docs/          # This documentation site
+├── portfolio-rebalance/   # Q1 rebalancing project
+├── home-renovation/       # Kitchen renovation tracking
+└── course-project/        # Stanford CS assignment
+```
+
+### Rules for Projects
+
+- Every project has a clear **completion criteria**
+- Projects have a **target date**
+- When done, projects move to `4_Archives/`
+- Active projects should number **5 or fewer** (ADHD constraint)
+
+## 2_Areas: Ongoing Responsibilities
+
+Areas are life domains that require ongoing attention but never "complete." InnerOS supports up to 16 areas.
+
+```
+2_Areas/
+├── Coding/              # Software development
+├── Comms/               # Email, messaging, communication
+│   └── Email/           # Email automation scripts + triage
+├── Family/              # Family relationships and care
+├── Finances/            # Banking, taxes, budgeting
+├── Health/              # Physical and mental health
+├── Home/                # Home maintenance and projects
+├── Impact Foundation/   # Philanthropy and social impact
+├── Learning/            # Courses, books, research
+├── Music/               # Creative output
+├── Real Estate/         # Property management
+├── Relationships/       # Social connections
+├── Self Growth/         # Personal development
+├── Stoic Capital/       # Investment management
+│   └── _workflows.md   # Domain-specific workflow definitions
+└── Writing/             # Published content
+```
+
+### Area-Workflow Mapping
+
+Each area has associated workflows defined in `0_InnerContext/Workflows/`. The `WORKFLOW_INDEX.md` file maps every workflow to its parent area.
+
+| Area | Key Workflows |
+|------|---------------|
+| Health | Morning routine, meditation, ADHD management, sleep tracking |
+| Music | Recording session, guitar practice, release preparation |
+| Writing | Research pipeline, Substack publishing, audience building |
+| Finances | Portfolio review, DeFi monitoring, tax preparation |
+| Family | Therapy coordination, daily sync, weekly planning |
+
+## 3_Resources: Reference Material
+
+Resources are topic-based reference collections. Unlike areas, resources are not responsibilities -- they are information you may need later.
+
+```
+3_Resources/
+├── Blueprints/          # System design templates
+├── Code/                # Code snippets and patterns
+├── Images/              # Visual assets
+├── Learning/            # Course materials, book notes
+├── Templates/           # Document templates
+└── Transcripts/         # Meeting and podcast transcripts
+```
+
+## 4_Archives: Completed Items
+
+When a project is done or an area is no longer active, it moves here. Archives are searchable but not actively maintained.
+
+```
+4_Archives/
+├── 2025-Q4-project/
+├── old-area-name/
+└── deprecated-workflow/
+```
+
+## _System: Claude Code Configuration
+
+The `_System` directory sits outside PARA. It contains the source of truth for Claude Code configuration:
+
+```
+_System/
+├── Claude_Code/
+│   ├── Commands/        # Slash command definitions
+│   ├── Agents/          # Agent definition files
+│   ├── Hooks/           # Pre/post tool execution hooks
+│   ├── Scripts/         # Utility scripts (Python, Bash, Node)
+│   ├── Skills/          # Multi-step skill packs
+│   └── Settings/        # Settings templates
+├── SKILL_GUIDE.md       # Complete skill documentation
+└── SYSTEM_MAP.md        # Quick reference map
+```
+
+This directory is symlinked to `~/.claude/` subdirectories. See [Symlink System](/architecture/symlinks) for details.
+
+## PARA Maintenance
+
+The vault structure requires periodic maintenance to stay healthy:
+
+| Cadence | Action |
+|---------|--------|
+| Daily | NightCrew triages inbox items to correct locations |
+| Weekly | Review active projects (should be 5 or fewer) |
+| Monthly | Archive completed projects, review areas |
+| Quarterly | Deep review: prune resources, update area definitions |
+
+The `/audit` command checks vault health: orphaned files, broken links, empty directories, and stale tracking data.

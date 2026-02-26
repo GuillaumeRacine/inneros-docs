@@ -1,0 +1,305 @@
+# Data Flow
+
+InnerOS continuously ingests data from external sources, processes it through scripts and agents, and stores results in the vault. This page maps how data moves through the system.
+
+## The Data Pipeline
+
+```
+External Sources          Ingestion Scripts          Vault Storage         Agents/Output
+─────────────────    ─────────────────────────    ─────────────────    ──────────────────
+
+Health APIs ─────┐
+Calendar API ────┤   weekly_data_fetcher.py
+Email (IMAP) ────┤   calendar_reader.py          0_InnerContext/
+GitHub API ──────┤   photo_triage.py         ──→  Tracking/           ──→ Weekly Review
+WhatsApp DB ─────┤   email_processor.py           Logs/                   Morning Brief
+Photo Library ───┤   secrets_manager.py           Auto Updates/           Coaching Sessions
+Finance APIs ────┤                                Data/                   Focus Suggestions
+Reminders ───────┘
+```
+
+## Data Sources
+
+InnerOS integrates with 12+ data sources. Each source has an ingestion script that normalizes the data into markdown and writes it to the vault.
+
+### Source Inventory
+
+| Source | Data Type | Ingestion Method | Update Frequency |
+|--------|----------|-----------------|-----------------|
+| Health Tracker (Oura/WHOOP) | Sleep, HRV, readiness | API script | Daily (NightCrew) |
+| Calendar (Google) | Events, scheduling | `calendar_reader.py` | On demand + daily |
+| Email (Gmail) | Messages, triage results | `email_processor.py` | Daily (NightCrew) |
+| GitHub | Commits, PRs, issues | `gh` CLI | Daily (NightCrew) |
+| WhatsApp | Message history | SQLite query | Weekly |
+| Photos | Photo metadata, triage | `photo_triage.py` | Nightly (NightCrew) |
+| Finance (DeFi) | Positions, P&L | API scripts | Every 15 minutes |
+| Finance (Traditional) | Portfolio, transactions | Monarch/API | Weekly |
+| Reminders (Apple) | Tasks, due dates | JXA script | Daily |
+| Claude Code | Session history, usage | JSONL parser | Weekly |
+| Git Repos | Commit history, stats | Git log parser | Weekly |
+| Voice Memos | Audio recordings | Whisper transcription | On demand |
+
+### Credential Management
+
+Data source scripts need API keys. InnerOS uses a three-tier fallback chain:
+
+```
+1. 1Password CLI (op read "op://Agents/ItemName/field")
+   └── Best: secure, versioned, auditable
+   └── Requires: GUI session for biometric auth
+
+2. Environment variables (from ~/.secrets)
+   └── Good: works in all contexts including LaunchAgents
+   └── Requires: manual management
+
+3. .env files (in script directories)
+   └── Fallback: works when nothing else does
+   └── Risk: must be in .gitignore
+```
+
+The `secrets_manager.py` module handles this fallback transparently:
+
+```python
+from secrets_manager import get_secret
+
+# Tries 1Password, then env var, then .env file
+api_key = get_secret("OPENAI_API_KEY")
+```
+
+## Ingestion Layer
+
+### How Scripts Work
+
+Each ingestion script follows the same pattern:
+
+```python
+# 1. Load credentials
+api_key = get_secret("SERVICE_API_KEY")
+
+# 2. Fetch data from external source
+raw_data = fetch_from_api(api_key, date_range)
+
+# 3. Transform to markdown
+markdown = format_as_markdown(raw_data)
+
+# 4. Write to vault
+output_path = "~/Obs_Vault/0_InnerContext/Tracking/Logs/..."
+write_file(output_path, markdown)
+```
+
+### Key Scripts
+
+| Script | Location | Purpose |
+|--------|----------|---------|
+| `weekly_data_fetcher.py` | `~/.claude/scripts/` | Orchestrates 8 data sources for weekly review |
+| `calendar_reader.py` | `~/.claude/scripts/` | Google Calendar read/write |
+| `photo_triage.py` | `~/.claude/scripts/` | Photo Library metadata analysis |
+| `secrets_manager.py` | `~/.claude/scripts/` | Credential retrieval with fallback |
+
+### Weekly Data Fetcher
+
+The most complex ingestion script pulls from 8 sources simultaneously:
+
+```
+weekly_data_fetcher.py
+│
+├── Claude Code activity (JSONL parsing)
+├── Git commits (2 organizations)
+├── GitHub Projects (board status)
+├── Financial data (Monarch API)
+├── Commitments tracking (vault files)
+├── Apple Reminders (JXA bridge)
+├── WhatsApp messages (SQLite query)
+└── Calendar events (Google API)
+│
+└── Output: ~/Obs_Vault/0_InnerContext/Tracking/Logs/weekly/YYYY-WXX-data.md
+```
+
+## Vault Storage Layer
+
+Ingested data lands in specific vault locations based on type:
+
+```
+0_InnerContext/
+├── Tracking/
+│   ├── metrics.md           # Aggregated metrics (updated by scripts)
+│   ├── data_feeds.md        # Source inventory and status
+│   └── Logs/
+│       ├── weekly/          # Weekly data snapshots
+│       │   ├── 2026-W08-data.md
+│       │   └── 2026-W09-data.md
+│       └── daily/           # Daily summaries
+│
+├── Auto Updates/
+│   ├── daily_insights.md    # Machine-generated daily observations
+│   └── topic_trends.md      # Trending topics across data sources
+│
+└── Data/
+    └── (raw exports, read-only reference)
+```
+
+### Data File Format
+
+All ingested data follows a consistent markdown format:
+
+```markdown
+# Weekly Data - 2026-W09
+
+## Metadata
+- Period: 2026-02-24 to 2026-03-02
+- Generated: 2026-03-02T03:00:00
+- Sources: 8/8 successful
+
+## Claude Code Activity
+- Sessions: 12
+- Messages: 347
+- Active hours: 18.5
+
+## Git Activity
+- Commits: 23
+- Repos touched: 4
+- Lines changed: +1,247 / -389
+
+## Calendar
+- Events: 14
+- Focus blocks: 6 (18 hours)
+- Meetings: 3 (2.5 hours)
+
+...
+```
+
+## Agent Consumption Layer
+
+Agents read vault data to provide context-aware responses:
+
+### How Agents Use Data
+
+| Agent | Reads | Produces |
+|-------|-------|----------|
+| Weekly Review Agent | `Tracking/Logs/weekly/` | Review document with insights |
+| Morning Brief Agent | `Auto Updates/`, `Tracking/` | Daily brief with priorities |
+| Focus Agent (`/focus`) | `Tracking/metrics.md`, goals | Single next action |
+| Coaching Agents | `Self_Context/`, `Tracking/` | Personalized guidance |
+| Health Agent | `Tracking/` (health data) | Trend analysis, recommendations |
+
+### The Morning Brief
+
+The most visible output of the data pipeline is the morning brief, assembled by NightCrew's final stages:
+
+```
+NightCrew Stage 19-21:
+│
+├── Read all data updated overnight
+├── Identify top priorities for today
+├── Flag any anomalies (health, finance, schedule)
+├── Draft 3-item focus list
+├── Write to Auto Updates/daily_insights.md
+└── Commit and push to git
+```
+
+When the user runs `/contxt` in the morning, this brief is part of the loaded context.
+
+## Data Flow Diagram
+
+```
+                    ┌─────────────┐
+                    │  External   │
+                    │  Sources    │
+                    │ (APIs, DBs) │
+                    └──────┬──────┘
+                           │
+                    ┌──────▼──────┐
+                    │  Ingestion  │
+                    │  Scripts    │
+                    │ (Python/JS) │
+                    └──────┬──────┘
+                           │
+                    ┌──────▼──────┐
+                    │   Vault     │
+                    │  Storage    │
+                    │  (Markdown) │
+                    └──────┬──────┘
+                           │
+              ┌────────────┼────────────┐
+              │            │            │
+       ┌──────▼──────┐ ┌──▼────┐ ┌────▼─────┐
+       │   Agents    │ │ User  │ │ NightCrew│
+       │ (reasoning) │ │(reads)│ │(process) │
+       └──────┬──────┘ └───────┘ └────┬─────┘
+              │                        │
+              └────────────┬───────────┘
+                           │
+                    ┌──────▼──────┐
+                    │   Output    │
+                    │  (briefs,   │
+                    │   reviews,  │
+                    │   actions)  │
+                    └─────────────┘
+```
+
+## Adding a New Data Source
+
+To integrate a new data source:
+
+### 1. Create the Ingestion Script
+
+```python
+# ~/.claude/scripts/new_source_fetcher.py
+
+from secrets_manager import get_secret
+from pathlib import Path
+from datetime import datetime
+
+def fetch_data():
+    api_key = get_secret("NEW_SOURCE_API_KEY")
+    # Fetch from source
+    data = call_api(api_key)
+    # Format as markdown
+    md = format_markdown(data)
+    # Write to vault
+    output = Path.home() / "Obs_Vault/0_InnerContext/Tracking/Logs/new_source.md"
+    output.write_text(md)
+
+if __name__ == "__main__":
+    fetch_data()
+```
+
+### 2. Register in Data Feeds
+
+Add an entry to `~/Obs_Vault/0_InnerContext/Tracking/data_feeds.md`:
+
+```markdown
+### New Source
+- Script: `~/.claude/scripts/new_source_fetcher.py`
+- Frequency: daily
+- Credential: `NEW_SOURCE_API_KEY` (in 1Password "Agents" vault)
+- Output: `Tracking/Logs/new_source.md`
+```
+
+### 3. Add to NightCrew (Optional)
+
+If the source should be fetched automatically, add it to the NightCrew pipeline:
+
+```python
+# In the NightCrew orchestrator, add a stage:
+stages.append({
+    "name": "Fetch New Source",
+    "script": "new_source_fetcher.py",
+    "stage_number": 6.5,  # Between existing stages
+    "type": "deterministic"
+})
+```
+
+### 4. Update Agent Context
+
+Tell agents about the new data source by updating the relevant context files:
+
+```markdown
+# In ~/Obs_Vault/0_InnerContext/Self_Context/master_context.md
+
+## Data Sources
+- ...existing sources...
+- New Source: daily updates in Tracking/Logs/new_source.md
+```
+
+The next time an agent loads context, it will know about and can reference the new data.

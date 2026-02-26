@@ -1,0 +1,209 @@
+# Daily Workflows
+
+Daily workflows form the backbone of InnerOS. Twelve workflows run every day -- most fully automated via NightCrew, with two requiring active human participation (morning routine and evening wind-down).
+
+## Daily Timeline
+
+```
+ 2:00 AM  ┌─────────────────────────────────────┐
+           │  NightCrew Pipeline (21 stages)     │
+           │  File org, email triage, messages,  │
+           │  voice memos, photo triage, etc.    │
+ 3:30 AM  └─────────────────────────────────────┘
+
+ 6:00 AM  ┌─────────────────────────────────────┐
+           │  Morning Brief (auto-generated)     │
+           │  Delivered via Telegram              │
+ 6:01 AM  └─────────────────────────────────────┘
+
+ 6:30 AM  ┌─────────────────────────────────────┐
+           │  Morning Routine (human + agent)    │
+           │  Review brief → set intention →     │
+           │  body check → top 3 priorities      │
+ 7:00 AM  └─────────────────────────────────────┘
+
+           ... (day happens) ...
+
+ 9:00 PM  ┌─────────────────────────────────────┐
+           │  Evening Wind-Down (human + agent)  │
+           │  Daily log → gratitude → tomorrow   │
+           │  preview → shutdown ritual           │
+ 9:30 PM  └─────────────────────────────────────┘
+```
+
+## Morning Routine
+
+The morning routine is triggered manually via `/focus` or by reading the auto-generated morning brief.
+
+### Morning Brief (Automated)
+
+NightCrew generates a morning brief overnight and delivers it via Telegram:
+
+```markdown
+# Morning Brief - Monday, Jan 13
+
+## Overnight Processing
+- 14 emails triaged (2 urgent, 4 important)
+- 3 voice memos transcribed
+- 47 photos reviewed (2 favorites, 8 screenshots archived)
+- Calendar: 3 meetings today
+
+## Today's Calendar
+- 09:00 - Team standup (30 min)
+- 14:00 - Dentist appointment
+- 20:00 - Guitar practice block
+
+## Open Commitments (from weekly review)
+- [ ] Finish draft of article on portfolio construction
+- [ ] Review DeFi position rebalancing
+
+## Health Snapshot
+- Sleep score: 82 (Oura)
+- HRV: 45ms (trending up)
+- Recovery: 71% (WHOOP)
+```
+
+### Morning Intention Setting (Human + Agent)
+
+The user runs `/focus` to start a guided 5-minute check-in:
+
+```
+Agent: Good morning. Your sleep score was 82 and recovery is at 71%.
+       Based on your calendar and open commitments, here are your
+       top 3 candidates for today:
+
+       1. Finish article draft (commitment, 2 days overdue)
+       2. DeFi rebalancing review (commitment, due today)
+       3. Prepare for Thursday presentation (project, 3 days out)
+
+       What feels right for your #1 focus today?
+
+User:  Article draft.
+
+Agent: Got it. Your #1 is the article draft. I've blocked a
+       2-hour focus window at 10:00 AM on your calendar.
+
+       One more thing -- what's your energy level right now? (1-5)
+
+User:  3
+
+Agent: Moderate energy. I'd suggest starting with the article
+       outline (lower activation energy) rather than writing from
+       scratch. Your outline is in Drafts/article-portfolio.md.
+
+       Have a good morning.
+```
+
+## ADHD Management Workflows
+
+Three daily workflows specifically target executive function:
+
+### 1. Activation Energy Check
+
+Before any deep work block, a quick agent prompt reduces friction:
+
+```
+/focus
+
+Agent: You have a 2-hour block starting now.
+       Your #1 task: finish article draft.
+
+       The file is: Drafts/article-portfolio.md
+       You left off at: Section 3 (Risk Parity)
+       Last edit: yesterday at 4:15 PM
+
+       Suggested first action: Re-read the last 2 paragraphs
+       you wrote and continue from there.
+
+       Ready? (y/n)
+```
+
+### 2. Transition Protocol
+
+Between tasks, a 2-minute reset prevents hyperfocus spillover:
+
+```yaml
+steps:
+  - Save current work (commit or save file)
+  - Stand up and stretch (30 seconds)
+  - Write one sentence about what you just finished
+  - Look at your top 3 list
+  - Begin next task with the pre-written first action
+```
+
+### 3. Medication Reminder
+
+A simple scheduled notification chain:
+
+```
+08:00 AM - "Take morning medication"
+12:00 PM - "Medication check: did you take it?" (if no response by 9am)
+02:00 PM - "Afternoon energy check - hydration and snack"
+```
+
+## Daily Reviews
+
+### Evening Wind-Down
+
+Triggered manually via `/evening` or at the scheduled time:
+
+```yaml
+name: evening-wind-down
+cadence: daily
+trigger: 9:00 PM (manual)
+duration: 15-20 minutes
+
+steps:
+  - name: Daily log
+    type: human
+    prompt: "What happened today? (voice memo or text)"
+
+  - name: Gratitude
+    type: human
+    prompt: "Name one thing you're grateful for today."
+
+  - name: Tomorrow preview
+    type: agent
+    action: Pull tomorrow's calendar + open commitments
+    output: Brief preview of tomorrow
+
+  - name: Shutdown ritual
+    type: human
+    prompt: "Close all work tabs. Write tomorrow's #1 on a sticky note."
+```
+
+### Daily Data Capture (Automated)
+
+NightCrew handles all data aggregation overnight:
+
+| Data Source | What's Captured | Storage |
+|-------------|----------------|---------|
+| Calendar | Events attended, time allocation | Tracking/Logs/ |
+| Health wearables | Sleep, HRV, recovery, activity | Tracking/Data/ |
+| Git commits | Code activity, repos touched | Tracking/Logs/ |
+| Claude Code | Sessions, messages, active hours | Tracking/Logs/ |
+| Email | Volume, categories, response time | Tracking/Data/ |
+| Messages | Communication patterns (metadata only) | Tracking/Data/ |
+
+## Workflow Dependencies
+
+Daily workflows feed into higher-cadence reviews:
+
+```
+Daily logs ──────────────────────┐
+Daily health data ───────────────┤
+Daily activity metrics ──────────┼──→ Weekly Review (aggregated)
+Daily communication metadata ────┤
+Daily financial snapshots ───────┘
+```
+
+## Failure Modes and Recovery
+
+| Failure | Impact | Recovery |
+|---------|--------|----------|
+| Skipped morning routine | Lower focus, no daily intention | Run `/focus` whenever ready -- no guilt |
+| NightCrew fails | No morning brief | Manual check of email + calendar |
+| Skipped evening review | Missing daily log entry | NightCrew fills gaps from automated data |
+| Missed medication reminder | Reduced executive function | Afternoon check-in catches it |
+
+The system is designed so that **no single skipped day causes cascading failure**. Automated data capture continues regardless of human participation, and weekly reviews reconcile any gaps.

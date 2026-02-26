@@ -1,0 +1,234 @@
+# Spawning Agents
+
+Spawn commands create temporary, purpose-built agents from [trait combinations](/agents/trait-system) without writing a permanent `.md` file. They are ideal for one-off tasks where you need a specific blend of expertise, personality, and approach.
+
+## Available Spawn Commands
+
+| Command | Purpose | Default Traits |
+|---------|---------|----------------|
+| `/spawn-agent` | General-purpose agent from traits | None (you specify all traits) |
+| `/spawn-coder` | Code-focused agent | expertise: `operations-engineer` |
+| `/spawn-researcher` | Research-focused agent | expertise: `domain-expert`, approach: `systematic` |
+| `/spawn-analyst` | Analysis-focused agent | expertise: `data-scientist`, approach: `data-driven` |
+
+## `/spawn-agent` -- General Purpose
+
+The base spawn command. You specify all traits explicitly.
+
+### Syntax
+
+```bash
+/spawn-agent --expertise <trait> --personality <trait> --approach <trait> [--task "description"]
+```
+
+### Parameters
+
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `--expertise` | Yes | One of 10 expertise traits |
+| `--personality` | No | One of 10 personality traits (default: `direct`) |
+| `--approach` | No | One of 8 approach traits (default: `pragmatic`) |
+| `--task` | No | Immediate task to execute after spawning |
+| `--context` | No | Additional context files to load |
+
+### Examples
+
+```bash
+# Strategic advisor for a career decision
+/spawn-agent --expertise systems-thinker --personality socratic --approach holistic \
+  --task "Help me think through whether to change roles"
+
+# Quick financial sanity check
+/spawn-agent --expertise financial-analyst --personality direct --approach data-driven \
+  --task "Review my Q1 budget projections"
+
+# Creative brainstorming partner
+/spawn-agent --expertise product-manager --personality narrative --approach creative \
+  --task "Generate 10 feature ideas for the onboarding flow"
+```
+
+## `/spawn-coder` -- Code Specialist
+
+Pre-configured for software engineering tasks. Adds coding-specific context and tool access automatically.
+
+### Syntax
+
+```bash
+/spawn-coder --focus <area> [--style <style>] [--task "description"]
+```
+
+### Parameters
+
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `--focus` | Yes | `refactoring`, `debugging`, `testing`, `architecture`, `performance`, `security` |
+| `--style` | No | `defensive`, `minimal`, `thorough` (default: `thorough`) |
+| `--task` | No | Immediate task to execute |
+| `--lang` | No | Primary language context (e.g., `typescript`, `python`) |
+
+### Focus Areas
+
+| Focus | Behavior |
+|-------|----------|
+| `refactoring` | Identifies code smells, suggests structural improvements, preserves behavior |
+| `debugging` | Systematic root cause analysis, adds logging, traces execution paths |
+| `testing` | Writes unit/integration tests, identifies untested paths, suggests test strategies |
+| `architecture` | Evaluates system design, identifies coupling, suggests separation of concerns |
+| `performance` | Profiles hot paths, suggests optimizations, measures before/after |
+| `security` | Threat modeling, input validation, dependency audit, secrets detection |
+
+### Examples
+
+```bash
+# Refactor a messy module
+/spawn-coder --focus refactoring --lang typescript \
+  --task "Clean up the authentication module in src/auth/"
+
+# Debug a failing test
+/spawn-coder --focus debugging --style thorough \
+  --task "Figure out why the calendar integration test is flaky"
+
+# Security review before deploy
+/spawn-coder --focus security --style defensive \
+  --task "Audit the API routes for injection vulnerabilities"
+```
+
+### Auto-Loaded Context
+
+`/spawn-coder` automatically reads:
+- The project's `CLAUDE.md` (if present)
+- Recent git history (last 10 commits)
+- The current git diff (staged and unstaged)
+- `package.json` or `pyproject.toml` (if present)
+
+## `/spawn-researcher` -- Research Specialist
+
+Pre-configured for information gathering, synthesis, and analysis.
+
+### Syntax
+
+```bash
+/spawn-researcher --depth <level> [--sources <type>] [--task "description"]
+```
+
+### Parameters
+
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `--depth` | Yes | `quick` (5 min), `standard` (15 min), `deep` (30+ min) |
+| `--sources` | No | `web`, `academic`, `vault`, `all` (default: `all`) |
+| `--task` | No | Research question or topic |
+| `--output` | No | Path for the research output file |
+
+### Depth Levels
+
+| Level | Behavior | Typical Output |
+|-------|----------|----------------|
+| `quick` | Surface scan, top 3-5 sources, headline findings | 1-page summary |
+| `standard` | Moderate depth, 10+ sources, cross-referenced findings | 2-3 page report |
+| `deep` | Exhaustive research, primary sources, contrarian views included | 5+ page report with citations |
+
+### Examples
+
+```bash
+# Quick lookup
+/spawn-researcher --depth quick \
+  --task "What are the current best practices for SQLite WAL mode configuration?"
+
+# Standard research report
+/spawn-researcher --depth standard --sources academic \
+  --task "Survey recent papers on ADHD and habit formation" \
+  --output ~/Obs_Vault/3_Resources/Research/adhd-habits.md
+
+# Deep dive
+/spawn-researcher --depth deep --sources all \
+  --task "Compare concentrated liquidity management strategies across DeFi protocols"
+```
+
+## `/spawn-analyst` -- Analysis Specialist
+
+Pre-configured for data analysis, metric evaluation, and decision support.
+
+### Syntax
+
+```bash
+/spawn-analyst --domain <domain> [--format <format>] [--task "description"]
+```
+
+### Parameters
+
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `--domain` | Yes | `financial`, `health`, `productivity`, `content`, `general` |
+| `--format` | No | `summary`, `report`, `dashboard`, `comparison` (default: `summary`) |
+| `--task` | No | Analysis task description |
+| `--data` | No | Path to data source file |
+
+### Examples
+
+```bash
+# Weekly health analysis
+/spawn-analyst --domain health --format summary \
+  --task "Analyze sleep and recovery trends for the past 4 weeks" \
+  --data ~/Obs_Vault/0_InnerContext/Tracking/Data/health_export.json
+
+# Content performance comparison
+/spawn-analyst --domain content --format comparison \
+  --task "Compare engagement metrics across the last 10 published posts"
+
+# Financial position review
+/spawn-analyst --domain financial --format dashboard \
+  --task "Generate a portfolio allocation summary with risk metrics"
+```
+
+## How Spawning Works Under the Hood
+
+When you run a spawn command, InnerOS:
+
+1. **Resolves traits** -- Maps your parameters to trait definitions from the [trait system](/agents/trait-system)
+2. **Builds a temporary agent** -- Constructs an in-memory agent definition combining the resolved traits
+3. **Loads context** -- Reads any auto-loaded or explicitly specified context files
+4. **Executes** -- Runs the agent with the combined persona, tools, and constraints
+5. **Discards** -- The temporary agent definition is not saved (unless you explicitly persist it)
+
+### Persisting a Spawned Agent
+
+If you find yourself spawning the same trait combination repeatedly, save it as a permanent agent:
+
+```bash
+# After spawning an agent you want to keep
+/spawn-agent --expertise financial-analyst --personality direct --approach data-driven \
+  --save-as portfolio-reviewer
+```
+
+This writes `~/.claude/agents/portfolio-reviewer.md` with the trait combination baked in.
+
+## Combining Spawn with Pipelines
+
+Spawned agents can be used as stages in ad-hoc pipelines:
+
+```bash
+# Research, then analyze, then decide
+/spawn-researcher --depth standard --task "Gather data on topic X" --output /tmp/research.md
+/spawn-analyst --domain general --task "Analyze findings in /tmp/research.md" --output /tmp/analysis.md
+/spawn-agent --expertise systems-thinker --personality direct --approach holistic \
+  --task "Based on /tmp/analysis.md, recommend next steps"
+```
+
+This is a manual pipeline. For automated multi-agent workflows, see [Workflows](/workflows).
+
+## Spawn Command Quick Reference
+
+| Want to... | Command |
+|------------|---------|
+| Get a quick expert opinion | `/spawn-agent --expertise <domain> --personality direct` |
+| Debug a tricky issue | `/spawn-coder --focus debugging --style thorough` |
+| Research a topic fast | `/spawn-researcher --depth quick --task "..."` |
+| Analyze data | `/spawn-analyst --domain <type> --task "..."` |
+| Challenge your thinking | `/spawn-agent --expertise domain-expert --personality provocative --approach contrarian` |
+| Get step-by-step guidance | `/spawn-agent --expertise educator --personality methodical --approach iterative` |
+
+## Next Steps
+
+- [Trait System](/agents/trait-system) -- Full trait catalog and composition rules
+- [Creating Agents](/agents/creating-agents) -- Write permanent agents from successful spawn patterns

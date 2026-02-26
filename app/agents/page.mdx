@@ -1,0 +1,134 @@
+# Agent System
+
+InnerOS uses **76 agents across 9 domains** to handle autonomous, multi-step tasks that require judgment, creativity, or decision-making. Agents are the probabilistic counterpart to [skills and commands](/skills-commands) -- they reason over ambiguous problems while skills handle deterministic procedures.
+
+## How Agents Work
+
+Every agent is a plain `.md` file stored in `~/.claude/agents/`. When you invoke an agent, Claude Code reads the markdown file as system-level instructions, adopting the persona, tools, and constraints defined within.
+
+```
+~/.claude/agents/
+├── calendar-manager.md
+├── code-reviewer.md
+├── email-triage.md
+├── photo-reviewer.md
+├── weekly-reviewer.md
+└── ...76 total
+```
+
+There is no runtime, no server, no API. An agent is just a markdown file that shapes how Claude Code behaves for a specific task.
+
+## Agent Domains
+
+| Domain | Agent Count | Examples |
+|--------|-------------|----------|
+| **Coaching** | 16 | The Stoic, The Operator, The Shadow, temporal coaches |
+| **Writing** | 13 | Researcher, Synthesizer, Narrative Architect, Fact Checker |
+| **Coding** | 8 | Code reviewer, refactor agent, test writer, debugger |
+| **Data & Analytics** | 7 | Weekly reviewer, photo triage, email triage, metrics |
+| **Research** | 6 | Deep researcher, web scanner, source validator |
+| **Strategy** | 5 | Investment analyst, portfolio reviewer, risk assessor |
+| **Organization** | 5 | Vault auditor, file organizer, inbox processor |
+| **Communication** | 4 | Email drafter, message summarizer, meeting prep |
+| **Creative** | 3 | Music session prep, creative brainstormer, idea generator |
+| **System** | 9 | NightCrew orchestrator, context builder, backup validator |
+
+## Agent vs. Skill: When to Use Which
+
+```
+Is the task...
+│
+├─ Well-defined with known inputs/outputs?
+│   └─ Use a SKILL (deterministic)
+│
+├─ Requiring creativity, judgment, or synthesis?
+│   └─ Use an AGENT (probabilistic)
+│
+├─ A mix of both?
+│   └─ Use HYBRID (skill orchestrates, agent reasons)
+│
+└─ Unclear?
+    └─ Start with agent, then extract skills from repeated patterns
+```
+
+**Example:** Fetching calendar events is a skill (known API, known output). Deciding which meetings to reschedule based on energy levels and priorities is an agent task.
+
+## Agent File Format
+
+Every agent `.md` file follows a consistent structure:
+
+```markdown
+# Agent: agent-name
+
+Brief description of the agent's purpose and domain.
+
+## Role
+What this agent does, its primary responsibility.
+
+## Context
+What files to read, what data sources to consult.
+
+## Tools
+Which Claude Code tools this agent should use (Bash, Read, Edit, WebSearch, etc.)
+
+## Constraints
+- What the agent must NOT do
+- Boundaries on scope
+- Safety guardrails
+
+## Output Format
+Expected structure of the agent's response or deliverable.
+
+## Examples
+Sample invocations and expected behavior.
+```
+
+See [Creating Agents](/agents/creating-agents) for a detailed walkthrough of writing your own.
+
+## The Trait System
+
+Agents can be composed with **28 traits** across three dimensions:
+
+- **10 Expertise traits** -- domain knowledge (e.g., financial-analyst, systems-thinker)
+- **10 Personality traits** -- communication style (e.g., direct, empathetic, socratic)
+- **8 Approach traits** -- methodology (e.g., first-principles, data-driven, contrarian)
+
+This creates **800+ possible combinations**, letting you spawn purpose-built agents on the fly. See [Trait System](/agents/trait-system) for the full catalog.
+
+## Spawning Agents
+
+For ad-hoc needs, InnerOS provides spawn commands that create temporary agents from trait combinations:
+
+```bash
+/spawn-agent --expertise financial-analyst --personality direct --approach data-driven
+/spawn-coder --focus refactoring --style defensive
+/spawn-researcher --depth deep --sources academic
+```
+
+See [Spawning Agents](/agents/spawning) for all spawn commands and their options.
+
+## Agent Lifecycle
+
+1. **Invocation** -- User calls the agent via `claude --agent agent-name` or an orchestrator invokes it
+2. **Context loading** -- Agent reads its required context files from the vault
+3. **Execution** -- Agent performs its task using available tools
+4. **Validation** -- Output is checked against defined criteria
+5. **Handoff** -- Results are written to the vault or passed to the next agent in a pipeline
+
+Agents never self-determine completion. They run until their objective criteria are met or iteration bounds are reached.
+
+## Multi-Agent Pipelines
+
+Some workflows chain multiple agents together:
+
+- **Writing Pipeline** -- 13 agents in sequence, from research to publication
+- **Weekly Review** -- Data fetcher (skill) feeds the weekly reviewer (agent) which produces the review document
+- **NightCrew** -- An orchestrator agent coordinates 21 stages, delegating to specialized agents and skills
+
+Each agent in a pipeline receives structured output from the previous stage and produces structured output for the next.
+
+## Next Steps
+
+- [Creating Agents](/agents/creating-agents) -- Write your first agent
+- [Trait System](/agents/trait-system) -- Understand composable traits
+- [Spawning](/agents/spawning) -- Create agents on the fly

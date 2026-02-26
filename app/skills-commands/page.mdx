@@ -1,0 +1,138 @@
+# Skills & Commands
+
+InnerOS distinguishes between **skills** (deterministic procedures) and **agents** (probabilistic reasoning). This is a core design principle, not an implementation detail. Using the right tool for each task dramatically improves reliability, speed, and cost.
+
+## The Core Distinction
+
+| Aspect | Skills & Commands | Agents |
+|--------|-------------------|--------|
+| **Nature** | Deterministic -- same input always produces same output | Probabilistic -- reasoning varies between runs |
+| **Reliability** | 100% reproducible | Variable outputs |
+| **Speed** | Fast (no LLM inference) | Slower (LLM token generation) |
+| **Cost** | Free (local execution) | Token costs per invocation |
+| **Best for** | Known procedures with defined I/O | Unknown problems requiring judgment |
+| **Implementation** | Shell scripts, Python scripts, markdown procedures | Markdown agent files with LLM instructions |
+
+## When to Use Skills vs. Agents
+
+```
+Is the task...
+│
+├─ A known procedure with predictable input/output?
+│   └─ SKILL -- file moves, data transforms, API calls, report templates
+│
+├─ A judgment call requiring creativity or synthesis?
+│   └─ AGENT -- research, writing, decision analysis, debugging
+│
+├─ A pipeline mixing both?
+│   └─ HYBRID -- skill collects data, agent reasons over it, skill formats output
+│
+└─ Something you've done 3+ times with an agent?
+    └─ Extract a SKILL from the pattern
+```
+
+### Concrete Examples
+
+| Task | Type | Why |
+|------|------|-----|
+| Fetch calendar events for today | Skill | Known API, known output format |
+| Decide which meetings to skip | Agent | Requires judgment about priorities |
+| Move files from inbox to correct folder | Skill | Rules-based routing |
+| Summarize a research paper | Agent | Requires comprehension and synthesis |
+| Run linter and format output | Skill | Deterministic tool execution |
+| Review code for architectural issues | Agent | Requires design judgment |
+| Generate weekly data report | Skill | Template + data = output |
+| Interpret trends in weekly data | Agent | Requires pattern recognition |
+
+## System Inventory
+
+InnerOS includes **88 commands and skills** organized into subsystems:
+
+| Category | Count | Examples |
+|----------|-------|---------|
+| Slash commands (`/command`) | 35 | `/focus`, `/audit`, `/weekly-review`, `/dn` |
+| Skill packs (multi-step) | 18 | Context loading, PDF processing, publishing |
+| Utility scripts | 20 | Data fetchers, credential managers, backup tools |
+| Hook scripts | 15 | Pre/post tool validation, completion checks |
+
+## Slash Commands
+
+Slash commands are invoked directly in Claude Code conversations. They are markdown files in `~/.claude/commands/` that define a procedure.
+
+```bash
+# User types in Claude Code:
+/focus          # ADHD focus check-in
+/audit          # Vault health check
+/weekly-review  # Generate weekly review
+/dn             # DeFi position dashboard
+/contxt         # Load personal context
+/portfolio      # Investment snapshot
+```
+
+Each command is a `.md` file that Claude Code reads and executes. See [Creating Commands](/skills-commands/creating-commands) for the format.
+
+## Skill Packs
+
+Skill packs are collections of related commands that form a subsystem. InnerOS includes 7 major skill packs:
+
+| Pack | Skills | Domain |
+|------|--------|--------|
+| **CORE** | 12 | System management, context loading, file operations |
+| **Writing** | 14 | Content pipeline from research to publication |
+| **Coding** | 10 | Code review, testing, refactoring, deployment |
+| **Research** | 8 | Source gathering, synthesis, validation |
+| **Strategy** | 6 | Decision frameworks, scenario analysis, risk assessment |
+| **Coaching** | 5 | Session management, reflection prompts, tracking |
+| **Organizer** | 8 | Inbox processing, file routing, vault maintenance |
+
+See [Skill Packs](/skills-commands/skill-packs) for detailed descriptions of each.
+
+## Hooks
+
+Hooks are scripts that run before or after Claude Code tool invocations. They enforce guardrails without requiring the agent to remember rules.
+
+```
+PreToolUse hooks  → Run BEFORE a tool executes
+PostToolUse hooks → Run AFTER a tool completes
+Stop hooks        → Run when an agent tries to stop
+```
+
+Examples:
+- **Pre-commit hook** -- Block commits that include `.env` files
+- **File safety hook** -- Prevent modifications outside designated directories
+- **Completion hook** -- Re-inject context and continue execution if tasks remain
+
+See [Hooks](/skills-commands/hooks) for the full hook system.
+
+## The Hybrid Pattern
+
+The most powerful InnerOS workflows combine skills and agents:
+
+```
+┌─────────┐     ┌─────────┐     ┌─────────┐     ┌─────────┐
+│  Skill  │ ──→ │  Agent  │ ──→ │  Skill  │ ──→ │  Agent  │
+│ (fetch) │     │(analyze)│     │(format) │     │(present)│
+└─────────┘     └─────────┘     └─────────┘     └─────────┘
+```
+
+**Weekly Review Pipeline example:**
+1. **Skill:** `weekly_data_fetcher.py` collects data from 8 sources
+2. **Agent:** Weekly reviewer interprets trends and writes narrative
+3. **Skill:** Formatter structures output as markdown with sections
+4. **Agent:** Summary writer produces the executive overview
+
+The skill handles the boring, repeatable parts (data fetching, formatting). The agent handles the parts that need judgment (interpretation, writing). Neither wastes time on the other's job.
+
+## Design Principles
+
+1. **Skills are first-class citizens** -- They are not simplified agents. They are a different, superior tool for their domain.
+2. **Extract skills from agents** -- When an agent does the same thing three times, turn that pattern into a skill.
+3. **Skills fail loudly** -- Clear error messages, non-zero exit codes, structured output.
+4. **Skills are idempotent** -- Safe to run multiple times with the same result.
+5. **Single responsibility** -- One skill, one job. Compose them for complex workflows.
+
+## Next Steps
+
+- [Creating Commands](/skills-commands/creating-commands) -- Write your first slash command
+- [Skill Packs](/skills-commands/skill-packs) -- Explore the 7 built-in subsystems
+- [Hooks](/skills-commands/hooks) -- Enforce guardrails automatically

@@ -1,0 +1,342 @@
+# Data Scripts
+
+InnerOS uses **6 core Python scripts** to power its data integrations. Each script follows the standard [integration pattern](/data-sources/integration-patterns): fetch, transform, store. All scripts live in the `_System/Claude_Code/Scripts/` directory within the vault.
+
+## Script Inventory
+
+| Script | Purpose | Input | Output |
+|--------|---------|-------|--------|
+| `weekly_data_fetcher.py` | Aggregates all sources into weekly report | 8+ data sources | `YYYY-WXX-data.md` |
+| `calendar_reader.py` | Google Calendar API integration | Google Calendar API | Events markdown |
+| `photo_triage.py` | Photo library analysis and scoring | Photos.sqlite | Triage decisions |
+| `email_triage.py` | Gmail categorization and prioritization | Gmail API | Categorized inbox |
+| `voice_memo_transcriber.py` | Audio transcription via Whisper | Voice memo files | Markdown transcripts |
+| `secrets_manager.py` | Credential resolution module | 1Password / env / .env | API keys and tokens |
+
+## `weekly_data_fetcher.py`
+
+The orchestrator script that aggregates data from all configured sources into a single weekly report.
+
+### What It Does
+
+1. Reads its list of registered data sources
+2. Calls each source's fetch function in sequence
+3. Catches errors per-source (one failure does not block others)
+4. Assembles all outputs into a combined markdown file
+5. Reports success/failure counts
+
+### Data Sources Collected
+
+| Source | Section | Key Metrics |
+|--------|---------|-------------|
+| Claude Code Activity | `## Claude Code` | Sessions, messages, active hours |
+| Git History | `## Git Activity` | Commits, repos, languages |
+| GitHub Projects | `## GitHub Projects` | Issues opened/closed, PR status |
+| Finance Tracker | `## Finances` | Spending by category, budget vs actual |
+| Commitments | `## Commitments` | Open commitments, completed this week |
+| Apple Reminders | `## Reminders` | Tasks due, overdue, completed |
+| WhatsApp | `## Communication` | Message counts, active conversations |
+| Photos | `## Photos` | Photos taken, triage decisions |
+
+### Output Format
+
+```markdown
+# Weekly Data: 2026-W08
+
+*Generated: 2026-02-22 03:15*
+
+## Claude Code
+- Sessions: 14
+- Messages: 342
+- Active hours: 18.5
+
+## Git Activity
+- Commits: 47 across 3 repos
+- Top repo: inneros-docs (23 commits)
+
+## Communication
+- WhatsApp: 156 messages sent, 203 received
+- Top conversations: 5 active threads
+
+...
+```
+
+### Usage
+
+```bash
+# Fetch all sources for the current week
+python3 weekly_data_fetcher.py
+
+# Fetch specific source only
+python3 weekly_data_fetcher.py --source "Claude Code"
+
+# Fetch for a specific week
+python3 weekly_data_fetcher.py --week 2026-W07
+```
+
+## `calendar_reader.py`
+
+Integrates with Google Calendar to read events, meetings, and time blocks.
+
+### What It Does
+
+1. Authenticates via OAuth 2.0 (saved token refreshes automatically)
+2. Fetches events for a configurable date range
+3. Groups events by calendar (work, personal, health, etc.)
+4. Outputs structured markdown with event details
+
+### Setup
+
+```bash
+# First-time OAuth flow (opens browser)
+python3 calendar_reader.py --setup
+
+# This creates:
+#   calendar_credentials.json  (OAuth client config)
+#   calendar_token.json        (saved refresh token)
+```
+
+### Key Features
+
+- **Full read/write scope** -- Can create events, not just read
+- **Timezone-aware** -- Uses America/Montreal (configurable)
+- **Multi-calendar support** -- Reads all calendars the account has access to
+- **Recurring event expansion** -- Expands recurring events into individual instances
+
+### Output Format
+
+```markdown
+# Calendar: 2026-02-26
+
+## Work
+- 09:00-10:00 Team standup (Google Meet)
+- 14:00-15:30 Architecture review
+
+## Personal
+- 07:00-07:30 Morning workout
+- 21:00-22:00 Music session
+
+## Blocked
+- 12:00-13:00 Lunch
+- 18:00-19:00 Family dinner
+```
+
+### Usage
+
+```bash
+# Today's events
+python3 calendar_reader.py
+
+# Specific date range
+python3 calendar_reader.py --start 2026-02-24 --end 2026-02-28
+
+# Create an event
+python3 calendar_reader.py --create "Team sync" --time "2026-02-27 10:00" --duration 30
+```
+
+## `photo_triage.py`
+
+Analyzes the local Photos library database to score and triage photos.
+
+### What It Does
+
+1. Connects to `Photos.sqlite` in read-only mode (`immutable=1`)
+2. Reads photo metadata: timestamps, aesthetic scores, face detection, screenshot flags
+3. Applies triage rules to classify photos
+4. Tracks state between runs to only process new photos
+5. Outputs triage decisions and weekly summaries
+
+### Database Access
+
+```python
+# Photos.sqlite location
+db_path = "~/Pictures/Photos Library.photoslibrary/database/Photos.sqlite"
+
+# MUST use immutable=1 to avoid WAL lock conflict with Photos.app
+conn = sqlite3.connect(f"file:{db_path}?immutable=1", uri=True)
+```
+
+### Key Fields from ZASSET Table
+
+| Field | Description | Notes |
+|-------|-------------|-------|
+| `ZDATECREATED` | Photo timestamp | Core Data epoch (+978307200) |
+| `ZFAVORITE` | User favorited | Boolean |
+| `ZISDETECTEDSCREENSHOT` | Screenshot detection | 32% false positive rate for HEIC |
+| `ZOVERALLAESTHETICSCORE` | ML aesthetic score | 0.0 to 1.0 |
+| `ZFACEAREAPOINTS` | Face detection coverage | Larger = more prominent faces |
+
+### Triage Categories
+
+| Category | Criteria | Action |
+|----------|----------|--------|
+| **Keep** | Favorited, high aesthetic score, faces | Retain |
+| **Review** | Medium score, ambiguous | Surface for human decision |
+| **Archive** | Low score, no faces, no favorite | Move to hidden |
+| **Delete** | Detected screenshot (confirmed), duplicates | Remove |
+
+### Usage
+
+```bash
+# Process new photos since last run
+python3 photo_triage.py
+
+# Weekly summary
+python3 photo_triage.py --summary
+
+# Reset state (reprocess all)
+python3 photo_triage.py --reset
+```
+
+## `email_triage.py`
+
+Categorizes and prioritizes Gmail inbox using an LLM classifier.
+
+### What It Does
+
+1. Connects to Gmail via OAuth 2.0
+2. Fetches unread/recent emails
+3. Sends each email subject + preview to an LLM for classification
+4. Assigns priority categories
+5. Outputs a categorized inbox summary
+
+### Classification Categories
+
+| Category | Priority | Agent Action |
+|----------|----------|-------------|
+| `urgent` | Highest | Flag for immediate attention |
+| `important` | High | Include in daily brief |
+| `newsletters` | Medium | Batch for reading time |
+| `updates` | Low | Weekly summary |
+| `receipts` | Low | Auto-archive |
+| `promotional` | Lowest | Auto-archive or delete |
+
+### Related Scripts
+
+| Script | Purpose |
+|--------|---------|
+| `processEmails.js` | Node.js alternative using gpt-4o-mini |
+| `archiveCategories.js` | Category-based bulk archiving |
+| `autoArchive.js` | Time-based automated cleanup |
+| `dailyDigest.js` | Generate daily email summary |
+
+### Usage
+
+```bash
+# Triage recent inbox
+python3 email_triage.py
+
+# Triage specific account
+python3 email_triage.py --account work
+
+# Auto-archive low-priority
+python3 email_triage.py --auto-archive
+```
+
+## `voice_memo_transcriber.py`
+
+Transcribes voice memos using the OpenAI Whisper API.
+
+### What It Does
+
+1. Scans the Voice Memos directory for new recordings
+2. Sends audio files to the Whisper API for transcription
+3. Writes markdown transcripts to the vault
+4. Tracks which files have been processed
+
+### Voice Memos Location
+
+```
+~/Library/Group Containers/group.com.apple.VoiceMemos.shared/Recordings/
+```
+
+### Output Format
+
+```markdown
+# Voice Memo Transcript
+
+**File:** Recording-2026-02-25.m4a
+**Date:** 2026-02-25 14:30
+**Duration:** 3:42
+
+## Transcript
+
+[Full transcription text here...]
+
+## Key Points
+- [Auto-extracted key points]
+```
+
+### Usage
+
+```bash
+# Transcribe all new memos
+python3 voice_memo_transcriber.py
+
+# Transcribe specific file
+python3 voice_memo_transcriber.py --file "Recording-2026-02-25.m4a"
+
+# List untranscribed memos
+python3 voice_memo_transcriber.py --list-pending
+```
+
+## `secrets_manager.py`
+
+A shared utility module used by all other scripts for credential resolution.
+
+### What It Does
+
+Provides a single `get_secret(key)` function that resolves credentials through a three-layer fallback chain:
+
+```
+1. 1Password CLI  →  op read "op://Agents/key/credential"
+2. Environment    →  os.environ[key]
+3. .env file      →  dotenv lookup in script directory
+```
+
+### Usage in Scripts
+
+```python
+from secrets_manager import get_secret
+
+# Just call get_secret -- it handles the fallback chain
+api_key = get_secret("OPENAI_API_KEY")
+calendar_token = get_secret("GOOGLE_CALENDAR_TOKEN")
+```
+
+### Configuration
+
+| Setting | Purpose |
+|---------|---------|
+| `OP_DISABLED=1` | Skip 1Password (for LaunchAgents) |
+| `SECRETS_ENV_FILE` | Override .env file path |
+| `SECRETS_VAULT` | Override 1Password vault name (default: "Agents") |
+
+### Key Design Decisions
+
+- **No caching** -- Secrets are fetched fresh each time (1Password handles its own caching)
+- **Timeout on 1Password** -- 5 second timeout prevents hanging if 1Password is locked
+- **Clear error messages** -- States which layers were tried when a secret is not found
+
+## Script Dependencies
+
+All scripts use standard library modules where possible. External dependencies:
+
+```
+requests          # HTTP client (calendar, email, voice memo)
+google-auth       # Google OAuth (calendar, email)
+google-api-python-client  # Google API (calendar, email)
+openai            # Whisper API (voice memo)
+python-dotenv     # .env file loading (secrets_manager)
+```
+
+Install with:
+
+```bash
+pip3 install requests google-auth google-api-python-client openai python-dotenv
+```
+
+## Next Steps
+
+- [Integration Patterns](/data-sources/integration-patterns) -- Write your own data source script
+- [Data Sources Overview](/data-sources) -- Full list of connected sources

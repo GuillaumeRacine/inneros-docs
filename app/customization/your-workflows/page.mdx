@@ -1,0 +1,280 @@
+# Your Workflows
+
+Workflows are the operational core of InnerOS. An agent without a workflow is just a chatbot. A workflow without an agent is just a checklist. Together, they form repeatable processes that reliably produce results.
+
+## Workflow Design Framework
+
+Every workflow answers five questions:
+
+```
+1. WHEN does it run?        → Cadence (daily, weekly, etc.)
+2. WHAT triggers it?        → Event, schedule, or manual command
+3. WHO does the work?       → Human, agent, script, or combination
+4. WHAT does it produce?    → Specific outputs (files, decisions, actions)
+5. HOW do we know it worked? → Validation criteria
+```
+
+### Workflow Definition Template
+
+```yaml
+name: workflow-name
+domain: which life area
+cadence: daily | weekly | monthly | quarterly | annual | on-demand
+trigger:
+  type: scheduled | manual | event
+  detail: "2:00 AM daily" | "/command-name" | "new file in inbox"
+
+steps:
+  - name: Step 1 name
+    type: human | agent | script | automated
+    description: What happens in this step
+    inputs: What this step needs
+    outputs: What this step produces
+    duration: Estimated time
+
+  - name: Step 2 name
+    type: ...
+
+validation:
+  - Output file exists
+  - Data is within expected range
+  - No errors in log
+
+outputs:
+  - file: path/to/output.md
+  - data: tracking/log/entry
+```
+
+## Building Your First Workflow: Morning Routine
+
+Start with the morning routine -- it provides daily value from day one.
+
+### Step 1: Map Your Current Morning
+
+Write down what you actually do (not what you want to do):
+
+```markdown
+## My Current Morning (Honest Version)
+1. Wake up, check phone (15 min, often lost in email/news)
+2. Coffee
+3. Sit down at computer, unclear what to work on
+4. Check Slack/email, react to whatever is loudest
+5. Actual work starts ~10 AM
+```
+
+### Step 2: Design the Improved Workflow
+
+```yaml
+name: morning-routine
+domain: productivity
+cadence: daily
+trigger:
+  type: scheduled
+  detail: Morning brief delivered at 6 AM via Telegram
+
+steps:
+  - name: Review morning brief
+    type: human
+    description: Read auto-generated brief (2 min)
+    inputs: NightCrew morning brief
+    outputs: Awareness of today's calendar and priorities
+    duration: 2 min
+
+  - name: Set intention
+    type: agent (morning-focus)
+    description: Pick one primary focus for the day
+    inputs: Brief, quarterly goals, open commitments
+    outputs: Single focus task with first action
+    duration: 3 min
+
+  - name: Body check
+    type: human
+    description: Rate energy 1-5, take medication if needed
+    inputs: None
+    outputs: Energy rating logged
+    duration: 1 min
+
+  - name: Begin first work block
+    type: human
+    description: Start the focus task with the suggested first action
+    inputs: Focus task and first action from step 2
+    outputs: Work in progress
+    duration: 60-120 min
+
+validation:
+  - Energy rating was logged
+  - Focus task was identified
+  - First work block started before 8 AM (flexible)
+```
+
+### Step 3: Implement It
+
+Create the supporting files:
+
+```bash
+# 1. Agent definition (if not already created)
+# ~/.claude/agents/morning-focus.md (see Your Agents section)
+
+# 2. Skill command
+# ~/.claude/commands/focus.md
+cat > ~/.claude/commands/focus.md << 'EOF'
+# Morning Focus Check-in
+
+Start the morning focus workflow. Read the morning brief
+and help the user set their primary intention for the day.
+
+Load context:
+- Self_Context/master_context.md
+- Auto Updates/morning_brief_latest.md
+- Goals/Quarterly/current.md
+
+Then run the morning-focus agent behavior.
+EOF
+
+# 3. NightCrew stage for morning brief generation
+# (This requires NightCrew setup -- see Automation section)
+```
+
+## Common Workflow Patterns
+
+### Pattern: Voice-First Input
+
+Many workflows accept voice memos instead of typed responses, reducing friction for ADHD users:
+
+```yaml
+steps:
+  - name: Reflect on the week
+    type: human
+    method: voice_memo | text
+    description: |
+      Answer these questions (voice memo preferred, 3-5 min):
+      1. What went well this week?
+      2. What didn't go as planned?
+      3. What am I focused on next week?
+
+  - name: Transcribe
+    type: automated
+    description: Transcribe voice memo using speech-to-text API
+    inputs: Audio file from previous step
+    outputs: Markdown transcript
+```
+
+### Pattern: Data Fetch + Agent Synthesis
+
+The most common workflow pattern in InnerOS. A script gathers data, then an agent makes sense of it:
+
+```yaml
+steps:
+  - name: Fetch data
+    type: script
+    script: fetch_domain_data.py
+    outputs: Structured markdown with raw numbers
+
+  - name: Synthesize
+    type: agent
+    agent: domain-analyst
+    inputs: Raw data + historical trends
+    outputs: Summary with insights and recommendations
+```
+
+### Pattern: Checklist with Validation
+
+For procedural workflows where steps must be completed in order:
+
+```yaml
+steps:
+  - name: Pre-flight checks
+    type: automated
+    checks:
+      - API keys are valid
+      - Data sources are reachable
+      - Output directory exists
+
+  - name: Execute steps
+    type: sequential
+    items:
+      - { task: "Step A", validate: "output_a.md exists" }
+      - { task: "Step B", validate: "output_b.md exists" }
+      - { task: "Step C", validate: "all tests pass" }
+
+  - name: Post-flight
+    type: automated
+    actions:
+      - Update tracking log
+      - Send completion notification
+```
+
+### Pattern: Graceful Degradation
+
+When parts of a workflow fail, the rest should still provide value:
+
+```yaml
+steps:
+  - name: Fetch health data
+    type: script
+    required: false  # ← workflow continues even if this fails
+    fallback: "Health data unavailable -- skipping health section"
+
+  - name: Fetch calendar data
+    type: script
+    required: true   # ← workflow halts if this fails
+
+  - name: Generate summary
+    type: agent
+    inputs: Available data (health may be missing)
+    behavior: Generate summary with whatever data is available
+```
+
+## Workflow Cadence Design
+
+### How to Choose a Cadence
+
+| Signal | Suggested Cadence |
+|--------|-------------------|
+| Needs attention every day | Daily |
+| Data accumulates over 5-7 days | Weekly |
+| Trends only visible over 30+ days | Monthly |
+| Strategic, not tactical | Quarterly |
+| Existential, directional | Annual |
+| Unpredictable timing | On-demand |
+
+### Cadence Nesting
+
+Higher-cadence workflows feed into lower ones:
+
+```
+Daily data ──→ Weekly review ──→ Monthly synthesis
+                                      │
+                                      ▼
+                              Quarterly strategy ──→ Annual reflection
+```
+
+Design your workflows so that each level aggregates the one below it. This means your annual review draws from quarterly data, which drew from monthly data, which drew from weekly data, which drew from daily data. No re-collection needed.
+
+## Workflow Registry
+
+Track all your workflows in a central file:
+
+```markdown
+# Workflow Registry
+
+| Name | Domain | Cadence | Trigger | Automation | Status |
+|------|--------|---------|---------|------------|--------|
+| morning-routine | Productivity | Daily | 6 AM brief | Semi | Active |
+| evening-winddown | Productivity | Daily | 9 PM manual | Semi | Active |
+| weekly-review | Productivity | Weekly | /weekly-review | Semi | Active |
+| defi-monitoring | Finance | 15 min | LaunchAgent | Full | Active |
+| email-triage | Comms | Daily | NightCrew | Full | Active |
+| monthly-finance | Finance | Monthly | /monthly-finance | Semi | Active |
+```
+
+## Anti-Patterns to Avoid
+
+| Anti-Pattern | Why It Fails | Better Approach |
+|-------------|-------------|-----------------|
+| Too many daily workflows | Overwhelm, none get done | Start with 2-3, add slowly |
+| No validation step | Cannot tell if workflow succeeded | Always define "done" criteria |
+| All-manual workflows | Depend entirely on motivation | Automate the boring parts |
+| All-automated workflows | No human reflection or judgment | Keep synthesis and decisions human |
+| Workflows with no output | Effort without artifact | Every workflow produces a file, log, or decision |
+| Copied someone else's workflows | May not fit your life | Adapt principles, not specifics |

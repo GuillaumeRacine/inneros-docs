@@ -1,0 +1,259 @@
+# Customizing the Pipeline
+
+The 13-stage writing pipeline is a default configuration designed for long-form content, not a fixed process. Every stage can be modified, reordered, skipped, or replaced to fit different content types, publication cadences, and writing styles.
+
+## Customization Levels
+
+| Level | What Changes | Effort |
+|-------|-------------|--------|
+| **Stage skipping** | Remove stages from the flow | None (tell Orchestrator) |
+| **Parameter tuning** | Adjust word counts, source counts, quality thresholds | Edit Orchestrator config |
+| **Stage modification** | Change a stage agent's behavior | Edit individual agent file |
+| **Stage replacement** | Swap a stage for a different agent | Write new agent, update Orchestrator |
+| **Pipeline forking** | Create an entirely different pipeline | Copy and modify all agents |
+
+## Stage Skipping
+
+The simplest customization. Tell the Orchestrator which stages to skip:
+
+```
+"Write a newsletter issue. Skip Research and Synthesis -- I already
+have my sources in this document: [link]. Skip Fact Checker -- these
+are opinion pieces, not factual claims."
+```
+
+### Recommended Skip Patterns by Content Type
+
+| Content Type | Use Stages | Skip Stages |
+|-------------|------------|-------------|
+| **Long-form essay** | All 13 | None |
+| **Newsletter issue** | 00, 03-06, 09-11 | 01-02 (sources exist), 07-08 (opinion) |
+| **Technical blog post** | 00, 01-02, 04, 06, 08-11 | 03, 05 (logical structure, not narrative) |
+| **Social thread** | 00, 06, 09, 10 | 01-05, 07-08, 11-12 |
+| **Research report** | 00, 01-02, 04-06, 08, 10-11 | 03, 07, 09 (no narrative, no style) |
+| **Book chapter** | All 13, plus extra loops | None, but stages 07-08 run multiple times |
+| **Daily note** | 06, 12 | Everything else |
+
+## Parameter Tuning
+
+Each stage has configurable parameters that affect its behavior without changing the agent itself.
+
+### Orchestrator Parameters
+
+```markdown
+## Pipeline Configuration
+
+### Research Depth
+- quick: 5-10 sources, surface scan
+- standard: 15-20 sources, moderate depth (default)
+- deep: 30+ sources, academic rigor
+
+### Target Length
+- short: 500-800 words
+- medium: 1500-2000 words (default)
+- long: 3000-5000 words
+- series: 5000+ words, split across installments
+
+### Quality Threshold
+- draft: No quality gate (publish as-is)
+- standard: Score >= 70/100 (default)
+- high: Score >= 85/100
+- premium: Score >= 90/100, requires human review
+
+### Voice Profile
+- analytical: Data-driven, structured, precise
+- conversational: Casual, direct, story-rich (default)
+- academic: Formal, cited, hedge-heavy
+- provocative: Strong opinions, challenges reader
+```
+
+To adjust parameters, modify the configuration block in the Orchestrator:
+
+```markdown
+## Configuration for This Run
+
+Research depth: deep
+Target length: long (3000-5000 words)
+Quality threshold: high (>= 85)
+Voice profile: provocative
+Skip stages: none
+Extra loops: Challenger runs twice
+```
+
+## Stage Modification
+
+To change how a specific stage behaves, edit its agent `.md` file directly.
+
+### Example: Making the Challenger More Aggressive
+
+Original:
+
+```markdown
+## Role
+Review the draft and identify weak arguments, unsupported claims,
+and areas where the reader might disengage.
+```
+
+Modified:
+
+```markdown
+## Role
+You are a hostile but fair critic. Assume the draft is wrong until
+proven right. For every claim, demand evidence. For every analogy,
+find a counter-example. For every paragraph, ask "would I keep reading?"
+If any section scores below 7/10 on engagement, flag it for rewrite.
+```
+
+### Example: Making Style Compression Domain-Specific
+
+For technical content:
+
+```markdown
+## Role
+You are a technical editor. Your job:
+- Replace vague language with precise terms
+- Add code examples where concepts are abstract
+- Remove hedging ("might", "could") -- be definitive
+- Ensure every paragraph has data, code, or a concrete example
+- Target reading level: experienced developer
+```
+
+For newsletter content:
+
+```markdown
+## Role
+You are a newsletter editor optimizing for engagement.
+- Opening sentence must create curiosity
+- Every paragraph must be under 3 sentences
+- Use "you" more than "I"
+- End sections with a question or provocation
+- Final paragraph must include a clear call to action
+```
+
+## Stage Replacement
+
+When modification is not enough, replace a stage entirely with a different agent.
+
+### Example: Replacing the Researcher
+
+The default Researcher uses web search and vault references. For academic work, you might want:
+
+```markdown
+# Agent: academic-researcher
+
+## Role
+You are an academic research assistant. You:
+- Prioritize peer-reviewed papers over blog posts
+- Use arXiv, Google Scholar, and Semantic Scholar
+- Track citation counts and impact factors
+- Produce an annotated bibliography, not just a source list
+
+## Output Format
+For each source:
+- Full citation (APA format)
+- Methodology summary (1-2 sentences)
+- Key finding relevant to the topic
+- Credibility score (1-5)
+- Relevance score (1-5)
+```
+
+Register the replacement in the Orchestrator:
+
+```markdown
+## Stage Overrides
+- Stage 01: Use `academic-researcher.md` instead of `01_researcher.md`
+```
+
+## Pipeline Forking
+
+For fundamentally different content types, fork the entire pipeline:
+
+```
+Workflows/Writing/Agents/
+  default/
+    00_orchestrator.md
+    01_researcher.md
+    ...
+  newsletter/
+    00_newsletter_orchestrator.md
+    01_source_curator.md
+    06_drafting.md
+    09_style_newsletter.md
+    10_distribution.md
+  technical/
+    00_tech_orchestrator.md
+    01_researcher.md
+    06_tech_drafting.md
+    08_code_reviewer.md
+```
+
+Each fork is a self-contained pipeline that shares some stages with the default and replaces others.
+
+## Voice Profiles
+
+Voice profiles control how Stage 09 (Style Compression) polishes the final draft. Define custom profiles for different publications.
+
+### Profile Structure
+
+```markdown
+# Voice Profile: [name]
+
+## Tone
+[One sentence describing the overall tone]
+
+## Sentence Patterns
+- Average sentence length: [short/medium/long]
+- Use of questions: [frequent/occasional/rare]
+- Use of imperatives: [frequent/occasional/rare]
+
+## Vocabulary
+- Technical level: [beginner/intermediate/expert]
+- Jargon policy: [avoid/define-on-first-use/assume-known]
+- Banned words: [list of words to never use]
+
+## Structure
+- Paragraph length: [1-3 sentences / 3-5 sentences / variable]
+- Use of lists: [frequent/occasional/rare]
+
+## Examples
+[2-3 paragraphs that exemplify this voice]
+```
+
+## Quality Rubric Customization
+
+The default quality rubric scores five dimensions. Customize weights for your content type:
+
+### Default Rubric
+
+| Dimension | Weight | Criteria |
+|-----------|--------|----------|
+| Clarity | 25% | Can a smart 16-year-old understand it? |
+| Originality | 20% | Does it say something new? |
+| Evidence | 20% | Are claims supported? |
+| Engagement | 20% | Would you keep reading? |
+| Voice | 15% | Does it sound like a person? |
+
+### Technical Content Rubric
+
+| Dimension | Weight | Criteria |
+|-----------|--------|----------|
+| Accuracy | 30% | Are technical details correct? |
+| Completeness | 25% | Does it cover the topic fully? |
+| Clarity | 25% | Can a mid-level engineer follow? |
+| Examples | 15% | Does every concept have a code example? |
+| Engagement | 5% | Minimum readability bar |
+
+### Newsletter Rubric
+
+| Dimension | Weight | Criteria |
+|-----------|--------|----------|
+| Hook | 30% | Does the opening demand attention? |
+| Engagement | 25% | Would you share this? |
+| Voice | 25% | Does it feel personal, not corporate? |
+| Actionability | 15% | Does the reader know what to do next? |
+| Length | 5% | Is it under the target word count? |
+
+## Next Steps
+
+- [Pipeline Overview](/writing-pipeline) -- The default 13-stage pipeline
+- [Stage Details](/writing-pipeline/stages) -- Deep dive into each stage

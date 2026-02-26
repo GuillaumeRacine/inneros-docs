@@ -1,0 +1,170 @@
+# File Paths
+
+Standard file paths and directory conventions used throughout InnerOS. Understanding this structure is essential for creating agents, commands, and integrations that reference the right locations.
+
+## Core Paths
+
+| Path | Purpose | Type |
+|------|---------|------|
+| `~/Obs_Vault/` | Obsidian vault root (symlink to shared vault) | Directory |
+| `~/.claude/` | Claude Code configuration directory | Directory |
+| `~/.claude/agents/` | Agent definition files (symlink) | Directory |
+| `~/.claude/commands/` | Slash command definitions (symlink) | Directory |
+| `~/.claude/hooks/` | Pre/post tool execution hooks (symlink) | Directory |
+| `~/.claude/scripts/` | Utility scripts (symlink) | Directory |
+| `~/.claude/skills/` | Multi-step skill packs (symlink) | Directory |
+| `~/.claude/settings.json` | Global permissions and hook config | File |
+| `~/.claude/settings.local.json` | Machine-specific overrides | File |
+| `~/.claude/CLAUDE.md` | Global context (read every session) | File |
+| `~/CLAUDE.md` | Project-level context for home directory | File |
+| `~/.secrets` | API keys and environment variables (chmod 600) | File |
+
+## Vault Structure (PARA)
+
+The Obsidian vault follows the PARA organizational method with an InnerOS layer at the top:
+
+```
+~/Obs_Vault/
++-- _System/                        System configuration
+|   +-- Claude_Code/                Claude Code source of truth
+|   |   +-- Agents/                 Agent definitions
+|   |   +-- Commands/               Slash commands
+|   |   +-- Hooks/                  Hook scripts
+|   |   +-- Scripts/                Python utility scripts
+|   |   +-- Skills/                 Skill packs
+|   |   +-- Settings/               Settings templates
+|   |   +-- SETUP_GUIDE.md          Setup instructions
+|   |   +-- CLAUDE.md               Global context template
+|   +-- SKILL_GUIDE.md              Skill system documentation
+|   +-- SYSTEM_MAP.md               Quick reference with IDs
+|
++-- 0_InnerContext/                  InnerOS operating system
+|   +-- Self_Context/               Identity files (15 files)
+|   |   +-- master_context.md       Core identity (primary context)
+|   |   +-- llm_instructions.md     How to interact
+|   |   +-- coding.md               Technical context
+|   |   +-- health.md               Health and ADHD
+|   |   +-- music.md                Music context
+|   |   +-- writing.md              Writing context
+|   |   +-- professional.md         Work and investing
+|   |   +-- family.md               Family context
+|   |   +-- workflows.md            Workflow overview
+|   |   +-- ...
+|   +-- Operating System/           Values, principles, boundaries
+|   +-- Goals/                      Direction and targets
+|   +-- Coaching/                   Coaching system
+|   |   +-- Coaches/                8 personal + specialists
+|   |   +-- Resources/              Framework materials
+|   |   +-- Sessions/               Session logs
+|   +-- Workflows/                  Workflow definitions
+|   |   +-- Writing/Agents/         13 writing pipeline agents
+|   |   +-- Crypto/                 DeFi workflows
+|   +-- Tracking/                   Metrics and data
+|   |   +-- Data/                   Raw data exports, state files
+|   |   +-- Logs/weekly/            Weekly aggregation outputs
+|   +-- Review/                     Review templates and archives
+|   +-- Auto Updates/               Auto-generated daily insights
+|   +-- Data/                       Historical data exports
+|   +-- AGENT_GUIDE.md              Which files to load per task
+|   +-- DATA_ACCESS.md              Full data/folder inventory
+|
++-- 1_Projects/                     Active, time-bound projects
++-- 2_Areas/                        16 ongoing life areas
++-- 3_Resources/                    Reference materials
++-- 4_Archives/                     Completed or inactive items
+```
+
+## Symlink Mapping
+
+The `~/.claude/` directories are symlinks to the vault's `_System/Claude_Code/` directory. This means the vault is the single source of truth, and changes in either location are reflected in the other.
+
+| Local Path | Vault Source |
+|------------|-------------|
+| `~/.claude/commands/` | `~/Obs_Vault/_System/Claude_Code/Commands/` |
+| `~/.claude/agents/` | `~/Obs_Vault/_System/Claude_Code/Agents/` |
+| `~/.claude/hooks/` | `~/Obs_Vault/_System/Claude_Code/Hooks/` |
+| `~/.claude/scripts/` | `~/Obs_Vault/_System/Claude_Code/Scripts/` |
+| `~/.claude/skills/` | `~/Obs_Vault/_System/Claude_Code/Skills/` |
+
+### Setting Up Symlinks
+
+```bash
+# Remove existing directories (back up first if they have content)
+rm -rf ~/.claude/commands ~/.claude/agents ~/.claude/hooks ~/.claude/scripts ~/.claude/skills
+
+# Create symlinks
+ln -s ~/Obs_Vault/_System/Claude_Code/Commands ~/.claude/commands
+ln -s ~/Obs_Vault/_System/Claude_Code/Agents ~/.claude/agents
+ln -s ~/Obs_Vault/_System/Claude_Code/Hooks ~/.claude/hooks
+ln -s ~/Obs_Vault/_System/Claude_Code/Scripts ~/.claude/scripts
+ln -s ~/Obs_Vault/_System/Claude_Code/Skills ~/.claude/skills
+```
+
+### Settings Files (Copied, Not Symlinked)
+
+Some files are copied rather than symlinked because Claude Code expects them in specific locations:
+
+| File | Why Not Symlinked |
+|------|-------------------|
+| `~/.claude/settings.json` | Claude Code reads this from a fixed path |
+| `~/.claude/settings.local.json` | Machine-specific, should not sync |
+| `~/.claude/CLAUDE.md` | Fixed path, read at session start |
+
+When updating these files, edit the vault copy first, then copy to `~/.claude/`.
+
+## External Storage
+
+For large files, project workspaces, and sensitive data that should not be in the synced vault:
+
+| Path | Purpose | Sync |
+|------|---------|------|
+| `[EXTERNAL]/0_System/` | Private vault, sensitive documents | None |
+| `[EXTERNAL]/0_System/Obsidian_Private/` | Private Obsidian vault (credentials, identity docs) | None |
+| `[EXTERNAL]/1_Projects/` | Active project workspaces (large repos, builds) | Git per-project |
+| `[EXTERNAL]/3_Resources/` | Reference materials (large files) | None |
+| `[EXTERNAL]/4_Archives/` | Completed projects, historical data | None |
+
+## Data Locations
+
+Specific data files referenced by scripts and agents:
+
+| Data | Path | Access Pattern |
+|------|------|---------------|
+| Weekly logs | `0_InnerContext/Tracking/Logs/weekly/YYYY-WXX-data.md` | Write weekly, read by agents |
+| Photo triage state | `0_InnerContext/Tracking/Data/photo_triage_state.json` | Read/write by photo_triage.py |
+| Calendar credentials | `_System/Claude_Code/Scripts/calendar_credentials.json` | OAuth client config |
+| Calendar token | `_System/Claude_Code/Scripts/calendar_token.json` | OAuth refresh token |
+| Email OAuth tokens | `2_Areas/Comms/Email/token.json` | Gmail API tokens |
+| Email scripts | `2_Areas/Comms/Email/` | Node.js email triage scripts |
+| Screenshots | `~/0_System/Screenshots/` | macOS screenshot capture location |
+| Session logs | `0_InnerContext/Coaching/Sessions/` | Coaching session records |
+| Writing logs | `0_InnerContext/Workflows/Writing/Logs/` | Quality metrics, feedback |
+| Context mirror | `~/Context/data/context_mirror/` | Copies for TCC-restricted access |
+
+## Database Locations
+
+Local databases accessed by data source scripts:
+
+| Database | Path | Access Mode |
+|----------|------|-------------|
+| Photos.sqlite | `~/Pictures/Photos Library.photoslibrary/database/Photos.sqlite` | Read-only (`immutable=1`) |
+| WhatsApp | `~/Library/Group Containers/group.net.whatsapp.WhatsApp.shared/ChatStorage.sqlite` | Read-only (`immutable=1`) |
+| Voice Memos | `~/Library/Group Containers/group.com.apple.VoiceMemos.shared/Recordings/` | Read-only (file access) |
+
+**Important:** All database access uses `immutable=1` SQLite mode to prevent WAL lock conflicts with the host applications.
+
+## Path Variables
+
+For use in scripts and agent context files, these shorthand variables map to full paths:
+
+| Variable | Resolves To |
+|----------|------------|
+| `$INNEROS` | `~/Obs_Vault/0_InnerContext` |
+| `$CONTEXT` | `~/Obs_Vault/0_InnerContext/Self_Context` |
+| `$COACHES` | `~/Obs_Vault/0_InnerContext/Coaching/Coaches` |
+| `$WORKFLOWS` | `~/Obs_Vault/0_InnerContext/Workflows` |
+| `$WRITERS` | `~/Obs_Vault/0_InnerContext/Workflows/Writing/Agents` |
+| `$KAI` | `~/Obs_Vault/_System` |
+| `$CLAUDE_CODE` | `~/Obs_Vault/_System/Claude_Code` |
+
+These are reference conventions, not necessarily exported shell variables. Use them in documentation and agent context sections.

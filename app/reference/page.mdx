@@ -1,0 +1,52 @@
+# Reference
+
+Technical reference material for InnerOS. This section covers the standard file paths, naming conventions, configuration settings, and a glossary of key terms. Use this as a lookup resource when building or customizing your InnerOS installation.
+
+## Quick Links
+
+| Section | What You'll Find |
+|---------|-----------------|
+| [File Paths](/reference/file-paths) | Standard directory structure, vault layout, symlink mapping, data locations |
+| [Naming Conventions](/reference/naming-conventions) | How files, agents, commands, and directories are named |
+| [Settings](/reference/settings) | Configuration hierarchy, `settings.json`, `CLAUDE.md`, hooks |
+| [System Stats](/reference/system-stats) | Auto-generated component counts and domain coverage |
+| [Glossary](/reference/glossary) | Definitions of key terms used throughout InnerOS |
+
+## Architecture Summary
+
+InnerOS spans three locations on disk:
+
+```
+~/.claude/                          Claude Code configuration
+  +-- agents/      (symlink)       Agent definitions
+  +-- commands/    (symlink)       Slash commands
+  +-- hooks/       (symlink)       Pre/post tool hooks
+  +-- scripts/     (symlink)       Utility scripts
+  +-- skills/      (symlink)       Skill packs
+  +-- settings.json                Global permissions
+  +-- settings.local.json          Machine overrides
+  +-- CLAUDE.md                    Global context
+
+~/Obs_Vault/                        Obsidian vault (PARA)
+  +-- _System/Claude_Code/         Source of truth (symlink targets)
+  +-- 0_InnerContext/              InnerOS operating system
+  +-- 1_Projects/                  Active projects
+  +-- 2_Areas/                     Ongoing responsibilities
+  +-- 3_Resources/                 Reference materials
+  +-- 4_Archives/                  Completed items
+
+[EXTERNAL]/                         External storage
+  +-- 0_System/                    Private vault, sensitive data
+  +-- 1_Projects/                  Large project workspaces
+  +-- 4_Archives/                  Historical archives
+```
+
+The symlink architecture means the vault is the single source of truth. Everything in `~/.claude/` points back to the vault's `_System/Claude_Code/` directory.
+
+## Key Principles
+
+1. **Vault is source of truth** -- All configuration originates in the Obsidian vault
+2. **Symlinks, not copies** -- `~/.claude/` directories are symlinks to the vault
+3. **PARA organizes everything** -- Projects, Areas, Resources, Archives
+4. **Consistent naming** -- Predictable conventions across all component types
+5. **Layered settings** -- Global, machine-local, and project-specific overrides

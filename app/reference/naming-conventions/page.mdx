@@ -1,0 +1,206 @@
+# Naming Conventions
+
+Consistent naming across all InnerOS components makes the system navigable, predictable, and scriptable. This page documents the conventions for every component type.
+
+## File Naming by Component Type
+
+| Component | Convention | Examples |
+|-----------|-----------|---------|
+| Agents | `kebab-case.md` | `house-expert.md`, `code-reviewer.md` |
+| Commands | `kebab-case.md` | `weekly-review.md`, `dev-cleanup.md` |
+| Coaches | `NN_The_Name.md` | `01_The_Stoic.md`, `07_The_Shadow.md` |
+| Writing agents | `NN_role.md` | `06_drafting.md`, `09_style_compression.md` |
+| Python scripts | `snake_case.py` | `weekly_data_fetcher.py`, `photo_triage.py` |
+| Shell scripts | `snake_case.sh` | `context_loader.sh`, `dev_cleanup.sh` |
+| Workflow files | `snake_case.md` | `daily_workflows.md`, `all_workflows.md` |
+| Data files | `snake_case.json` or `.md` | `photo_triage_state.json` |
+| Weekly logs | `YYYY-WXX-type.md` | `2026-W08-data.md`, `2026-W08-review.md` |
+| Session logs | `YYYY-MM-DD-name.md` | `2026-02-26-stoic-session.md` |
+| Context files | `snake_case.md` | `master_context.md`, `llm_instructions.md` |
+
+## Directory Naming
+
+| Context | Convention | Examples |
+|---------|-----------|---------|
+| PARA top-level | `N_Name/` (numbered prefix) | `1_Projects/`, `2_Areas/`, `4_Archives/` |
+| Area folders | `Title Case/` | `Stoic Capital/`, `Self Growth/` |
+| InnerOS subsystems | `Title_Case/` (underscores) | `Claude_Code/`, `Self_Context/`, `Auto Updates/` |
+| Documentation site | `kebab-case/` | `agents/catalog/trading/`, `skills-commands/` |
+| System directories | `Title_Case/` | `Commands/`, `Agents/`, `Scripts/` |
+
+### PARA Numbering
+
+The PARA structure uses numeric prefixes to enforce sort order:
+
+```
+0_InnerContext/    (InnerOS layer, before PARA)
+1_Projects/        (active, time-bound)
+2_Areas/           (ongoing responsibilities)
+3_Resources/       (reference materials)
+4_Archives/        (completed items)
+```
+
+The `_System/` directory uses an underscore prefix to sort before numbered directories.
+
+## Agent Naming Rules
+
+### File Name
+
+- **Format:** `kebab-case.md`
+- **No version numbers:** `code-reviewer.md`, not `code-reviewer-v2.md`
+- **Descriptive:** The name should tell you what the agent does
+
+### Header
+
+The agent header must match the file name (without extension):
+
+```markdown
+# Agent: code-reviewer       <-- matches code-reviewer.md
+```
+
+### Domain Prefixes
+
+For related agent groups, use a domain prefix:
+
+| Prefix | Domain | Examples |
+|--------|--------|---------|
+| `dn-` | Delta-neutral DeFi | `dn-monitor.md`, `dn-rebalancer.md` |
+| `todo-` | Task management | `todo-triage.md`, `todo-prioritizer.md` |
+| `writing-` | Content creation | `writing-researcher.md`, `writing-editor.md` |
+| `photo-` | Photo management | `photo-reviewer.md`, `photo-tagger.md` |
+
+### Spawn Names
+
+Spawned agents use a temporary naming pattern:
+
+```
+spawned-{expertise}-{personality}-{approach}
+```
+
+Example: `spawned-financial-analyst-direct-data-driven`
+
+## Command Naming Rules
+
+### File Name
+
+- **Format:** `kebab-case.md`
+- **Verb-first when possible:** `audit.md`, `verify-changes.md`, `deploy.md`
+- **Domain-noun for status:** `house-status.md`, `ghost-status.md`
+- **Spawn prefix for agent creation:** `spawn-agent.md`, `spawn-coder.md`
+
+### Invocation
+
+The file name becomes the slash command:
+
+| File | Command |
+|------|---------|
+| `audit.md` | `/audit` |
+| `weekly-review.md` | `/weekly-review` |
+| `spawn-coder.md` | `/spawn-coder` |
+
+### Naming Patterns
+
+| Pattern | Use When | Examples |
+|---------|----------|---------|
+| `verb` | Single-action command | `/audit`, `/deploy`, `/focus` |
+| `verb-noun` | Action on specific target | `/verify-changes`, `/dev-cleanup` |
+| `domain-action` | Domain-specific command | `/dn-monitor`, `/photo-triage` |
+| `domain-status` | Status check | `/house-status`, `/portfolio-snapshot` |
+| `spawn-type` | Agent creation | `/spawn-agent`, `/spawn-researcher` |
+
+## Coach Naming Rules
+
+Coaches use numbered prefixes to enforce a canonical order:
+
+```
+NN_The_Name.md
+```
+
+| Range | Category |
+|-------|----------|
+| 01-08 | Personal coaches |
+| 09-12 | Temporal coaches (review cadences) |
+| 13+ | Specialist coaches |
+
+### Conventions
+
+- **Always "The"**: `01_The_Stoic.md`, not `01_Stoic.md`
+- **Title case with underscores**: `07_The_Shadow.md`
+- **Two-digit prefix**: `01`, not `1` (for consistent sorting)
+
+## Writing Pipeline Agent Naming
+
+Writing agents use numbered prefixes matching their pipeline stage:
+
+```
+NN_role_name.md
+```
+
+| Number | Agent |
+|--------|-------|
+| `00` | `00_orchestrator.md` |
+| `01` | `01_researcher.md` |
+| `02` | `02_synthesizer.md` |
+| ... | ... |
+| `12` | `12_notes_agent.md` |
+
+### Conventions
+
+- **Snake case after number**: `09_style_compression.md`
+- **Stage number matches pipeline position**
+- **No "the" prefix** (unlike coaches)
+
+## Script Naming Rules
+
+### Python Scripts
+
+- **Format:** `snake_case.py`
+- **Descriptive action:** `weekly_data_fetcher.py`, `photo_triage.py`
+- **Module suffix for libraries:** `secrets_manager.py` (imported, not run directly)
+
+### Shell Scripts
+
+- **Format:** `snake_case.sh`
+- **Match the command they support:** `dev_cleanup.sh` for `/dev-cleanup`
+
+## Meta Files
+
+### `_meta.js` (Nextra Navigation)
+
+Controls sidebar navigation in the documentation site:
+
+```js
+export default {
+  index: 'Overview',             // page.mdx in this directory
+  'sub-section': 'Display Title', // sub-section/page.mdx
+  'another-page': 'Title'         // another-page/page.mdx
+}
+```
+
+**Rules:**
+- `index` always maps to the directory's `page.mdx`
+- Keys use `kebab-case` matching subdirectory names
+- Values are human-readable display titles
+
+### `_index.md` (Vault Index)
+
+Used within the Obsidian vault to provide navigation for a directory:
+
+```markdown
+# Section Name
+
+## Contents
+- [[file-1]] - Description
+- [[file-2]] - Description
+```
+
+## Anti-Patterns
+
+| Do Not | Instead |
+|--------|---------|
+| `CodeReviewer.md` (PascalCase) | `code-reviewer.md` (kebab-case) |
+| `code_reviewer.md` (snake_case for agents) | `code-reviewer.md` (kebab-case) |
+| `1_The_Stoic.md` (single digit) | `01_The_Stoic.md` (two digits) |
+| `v2-code-reviewer.md` (version) | `code-reviewer.md` (no version) |
+| `my script.py` (spaces) | `my_script.py` (snake_case) |
+| `WEEKLY_REVIEW.md` (all caps) | `weekly_review.md` (lower snake) |

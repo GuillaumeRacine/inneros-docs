@@ -1,0 +1,327 @@
+# NightCrew Pipeline
+
+NightCrew is a 21-stage nightly batch pipeline that processes the day's accumulated data while the user sleeps. It runs at 2:00 AM via a macOS LaunchAgent and typically completes in 40-60 minutes.
+
+## Pipeline Overview
+
+```
+Stage  1: File Organization       ████ (2 min)
+Stage  2: Email Triage            ██████ (5 min)
+Stage  3: Email Archiving         ███ (2 min)
+Stage  4: Message Processing      ████ (3 min)
+Stage  5: Voice Memo Transcription████████ (8 min)
+Stage  6: Media Digest            ███ (2 min)
+Stage  7: Daily Notes Compilation ██ (1 min)
+Stage  8: Calendar Sync           ███ (2 min)
+Stage  9: Google Drive Sync       ████ (3 min)
+Stage 10: Dropbox Sync            ███ (2 min)
+Stage 11: Todo Sync               ██ (1 min)
+Stage 12: Photo Triage            ████████████ (12 min)
+Stage 13: Commitment Reconcile    ███ (2 min)
+Stage 14: DeFi Snapshot           ████ (3 min)
+Stage 15: Health Data Aggregation ███ (2 min)
+Stage 16: Learning Progress       ██ (1 min)
+Stage 17: Social Media Digest     ███ (2 min)
+Stage 18: Monthly Aggregation*    ████ (3 min)
+Stage 19: Context Backup          ██ (1 min)
+Stage 20: Morning Brief Gen       ████ (3 min)
+Stage 21: Delivery                █ (1 min)
+
+* Stage 18 only runs on the 1st of each month
+Total: ~47 minutes average
+```
+
+## Stage Details
+
+### Stage 1: File Organization
+
+Scans inbox folders and routes files to their correct PARA locations.
+
+```python
+ROUTING_RULES = {
+    "*.pdf": {
+        "contains_invoice": "2_Areas/Finance/Invoices/",
+        "contains_receipt": "2_Areas/Finance/Receipts/",
+        "default": "3_Resources/Documents/"
+    },
+    "*.md": {
+        "starts_with_draft": "1_Projects/Writing/Drafts/",
+        "default": "00_Inbox/"
+    },
+    "*.jpg|*.png|*.heic": {
+        "screenshot": "3_Resources/Screenshots/",
+        "default": "3_Resources/Images/"
+    }
+}
+
+def route_file(filepath):
+    for pattern, rules in ROUTING_RULES.items():
+        if matches(filepath, pattern):
+            category = classify(filepath, rules)
+            move(filepath, rules[category])
+            log(f"Routed {filepath} -> {rules[category]}")
+```
+
+### Stage 2-3: Email Triage and Archiving
+
+Processes unread emails through an LLM classifier, then archives based on category.
+
+```yaml
+classification_categories:
+  - urgent: Requires same-day response
+  - important: Requires this-week response
+  - newsletters: Batch read on weekend
+  - updates: Informational, no action needed
+  - receipts: Auto-archive with metadata extraction
+  - promotional: Auto-archive or delete
+
+actions_by_category:
+  urgent: Flag + include in morning brief
+  important: Add to daily task list
+  newsletters: Move to newsletter folder
+  updates: Archive with tag
+  receipts: Extract amount + vendor, archive
+  promotional: Archive (delete if spam score > 0.8)
+```
+
+### Stage 4: Message Processing
+
+Extracts metadata from messaging platforms (no message content stored):
+
+```python
+def process_messages(date):
+    # WhatsApp: query local SQLite database
+    whatsapp_stats = query_whatsapp_db(date)
+
+    return {
+        "total_messages": whatsapp_stats.count,
+        "sent": whatsapp_stats.sent,
+        "received": whatsapp_stats.received,
+        "active_conversations": whatsapp_stats.conversations,
+        "busiest_hour": whatsapp_stats.peak_hour,
+    }
+    # Note: message content is NOT stored or processed
+```
+
+### Stage 5: Voice Memo Transcription
+
+Finds new voice memos and transcribes them using a speech-to-text API:
+
+```python
+def transcribe_new_memos(recordings_dir, processed_log):
+    processed = load_processed(processed_log)
+    new_memos = [f for f in list_recordings(recordings_dir)
+                 if f.name not in processed]
+
+    for memo in new_memos:
+        transcript = transcribe_audio(memo.path)  # Whisper API
+        save_transcript(memo, transcript)
+        mark_processed(memo.name, processed_log)
+        log(f"Transcribed: {memo.name} ({memo.duration}s)")
+```
+
+### Stage 6: Media Digest
+
+Aggregates content consumption across platforms:
+
+```markdown
+## Daily Media Digest - Jan 14
+
+### Articles Read (from read-later app)
+- "Building a Second Brain" (45 min read)
+- "DeFi Yield Strategies 2026" (20 min read)
+
+### Podcasts (detected from listening apps)
+- Lex Fridman #412 (2h 15m)
+
+### Videos (detected from watch history)
+- 3Blue1Brown: "Neural Networks" (22m)
+```
+
+### Stage 8: Calendar Sync
+
+Fetches the next day's calendar and generates a schedule overview:
+
+```python
+def sync_calendar(target_date):
+    events = fetch_calendar_events(target_date)
+
+    return {
+        "events": [format_event(e) for e in events],
+        "total_meetings": len([e for e in events if e.is_meeting]),
+        "focus_blocks": calculate_focus_blocks(events),
+        "travel_time": sum(e.travel_time for e in events),
+    }
+```
+
+### Stage 12: Photo Triage
+
+The longest-running stage. Processes new photos from the Photos library:
+
+```python
+def triage_photos(since_last_run):
+    new_photos = query_photos_db(since=since_last_run)
+
+    for photo in new_photos:
+        score = {
+            "aesthetic": photo.overall_aesthetic_score,
+            "has_faces": photo.face_area_points > 0,
+            "is_screenshot": photo.is_detected_screenshot,
+            "is_favorite": photo.is_favorite,
+        }
+
+        action = classify_photo(score)
+        # Actions: keep, review, archive, flag_for_deletion
+        log_photo_decision(photo.id, action, score)
+
+    return {
+        "processed": len(new_photos),
+        "favorites": count(action == "keep"),
+        "screenshots": count(action == "archive"),
+        "review_needed": count(action == "review"),
+    }
+```
+
+### Stage 13: Commitment Reconciliation
+
+Cross-references commitments made (from messages, calendar, reviews) against completions:
+
+```python
+def reconcile_commitments():
+    open_commitments = load_commitments(status="open")
+    completed_today = detect_completions(today)
+
+    for commitment in open_commitments:
+        if commitment in completed_today:
+            mark_complete(commitment)
+        elif commitment.due_date < today:
+            flag_overdue(commitment)
+
+    return {
+        "total_open": len(open_commitments),
+        "completed_today": len(completed_today),
+        "newly_overdue": count(newly_overdue),
+    }
+```
+
+### Stage 18: Monthly Aggregation (Conditional)
+
+Only runs on the 1st of each month. Rolls up the previous month's daily data:
+
+```python
+def monthly_aggregation():
+    if today.day != 1:
+        skip("Not first of month")
+        return
+
+    last_month = today - timedelta(days=1)
+    daily_logs = load_daily_logs(last_month.year, last_month.month)
+
+    monthly_summary = aggregate(daily_logs)
+    write_monthly_file(last_month, monthly_summary)
+```
+
+### Stage 19: Context Backup
+
+Commits and pushes critical context files to a private Git repository:
+
+```bash
+cd ~/Context
+git add -A
+git diff --cached --quiet || {
+    git commit -m "NightCrew backup: $(date +%Y-%m-%d)"
+    git push origin main
+}
+```
+
+### Stage 20-21: Morning Brief and Delivery
+
+Compiles all processed data into a morning brief and delivers via Telegram:
+
+```python
+def generate_morning_brief(all_stage_results):
+    brief = MORNING_BRIEF_TEMPLATE.format(
+        date=tomorrow,
+        email_summary=stage_results["email"],
+        calendar=stage_results["calendar"],
+        commitments=stage_results["commitments"],
+        health=stage_results["health"],
+        voice_memos=stage_results["transcriptions"],
+        photos=stage_results["photos"],
+    )
+
+    save_to_vault(brief, f"Auto Updates/morning_brief_{tomorrow}.md")
+    send_telegram(brief)
+```
+
+## Error Handling
+
+```python
+class NightCrewPipeline:
+    def run(self):
+        results = {}
+        for stage in self.stages:
+            try:
+                result = stage.execute(timeout=stage.timeout)
+                results[stage.name] = {"status": "success", "data": result}
+            except TimeoutError:
+                results[stage.name] = {"status": "timeout"}
+                log.warning(f"{stage.name} timed out after {stage.timeout}s")
+            except Exception as e:
+                results[stage.name] = {"status": "error", "error": str(e)}
+                log.error(f"{stage.name} failed: {e}")
+
+                if stage.required:
+                    raise PipelineHaltError(stage.name, e)
+                # Non-required stages: log and continue
+
+        self.write_run_log(results)
+        return results
+```
+
+## Configuration
+
+```yaml
+# nightcrew_config.yaml
+schedule: "0 2 * * *"  # 2:00 AM daily
+timeout_minutes: 90     # Kill pipeline after 90 min
+log_retention_days: 90   # Keep logs for 90 days
+
+stages:
+  - name: file_organization
+    enabled: true
+    required: false
+    timeout: 120
+
+  - name: email_triage
+    enabled: true
+    required: false
+    timeout: 300
+    config:
+      model: "gpt-4o-mini"
+      max_emails: 100
+
+  # ... (21 stages configured)
+```
+
+## Adding a New Stage
+
+```python
+# 1. Create the stage script
+# stages/my_new_stage.py
+
+def execute(config, context):
+    """
+    Args:
+        config: Stage-specific configuration
+        context: Results from previous stages
+    Returns:
+        dict with stage results
+    """
+    data = fetch_my_data()
+    processed = process_data(data)
+    return {"items_processed": len(processed), "summary": summarize(processed)}
+
+# 2. Register in nightcrew_config.yaml
+# 3. Test with: python nightcrew.py --stage my_new_stage --dry-run
+```

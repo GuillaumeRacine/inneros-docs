@@ -9,11 +9,11 @@ export default {
   architecture: 'Architecture',
   agents: 'Agents',
   'skills-commands': 'Skills & Commands',
-  workflows: 'Workflows',
-  'data-sources': 'Data Sources',
   coaching: 'Coaching',
   'writing-pipeline': 'Writing Pipeline',
   automation: 'Automation',
+  workflows: 'Workflows',
+  'data-sources': 'Data Sources',
   customization: 'Customization',
   reference: 'Reference'
 }

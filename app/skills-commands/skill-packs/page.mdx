@@ -1,0 +1,210 @@
+# Skill Packs
+
+Skill packs are collections of related commands and scripts that form a cohesive subsystem. InnerOS ships with **7 skill packs** covering the major operational domains. Each pack can be used independently or composed with others.
+
+## Pack Overview
+
+| Pack | Skills | Purpose | Key Commands |
+|------|--------|---------|--------------|
+| **CORE** | 12 | System management, context, file ops | `/contxt`, `/audit`, `/focus` |
+| **Writing** | 14 | Content pipeline, publishing, archiving | `/publish-prep`, `/archive-post` |
+| **Coding** | 10 | Code quality, testing, deployment | `/verify-changes`, `/dev-cleanup` |
+| **Research** | 8 | Source gathering, synthesis, validation | `/deep-research`, `/source-check` |
+| **Strategy** | 6 | Decision frameworks, scenario analysis | `/decision-matrix`, `/portfolio-snapshot` |
+| **Coaching** | 5 | Session management, reflection | `/check-in`, `/weekly-review` |
+| **Organizer** | 8 | Inbox processing, vault maintenance | `/inbox-scan`, `/triage` |
+
+## CORE Pack
+
+The foundational skill pack. Every InnerOS installation starts with CORE.
+
+### Commands
+
+| Command | Description |
+|---------|-------------|
+| `/contxt` | Load personal context and route to domain-specific files |
+| `/contxt <domain>` | Load domain-specific context (coding, music, health, etc.) |
+| `/audit` | Run vault health check: structure, orphans, broken links |
+| `/focus` | ADHD focus check-in: what to work on, what to drop |
+| `/dev-cleanup` | Kill orphaned processes, remove lock files, clean temp |
+| `/o` | Open the current file in Obsidian |
+| `/usc` | Take and review a screenshot |
+| `/pdf-split` | Convert PDF to topic-based markdown sections |
+| `/sync-workflows` | Sync workflow definitions with central registry |
+| `/verify-changes` | Run tests, type check, lint after code changes |
+| `/compact` | Compact conversation history to save context |
+| `/init` | Initialize InnerOS in a new project directory |
+
+### Key Scripts
+
+```
+~/.claude/scripts/
+├── context_loader.sh      # Resolves and loads context files
+├── vault_audit.py         # Structural validation of vault
+├── screenshot_capture.sh  # macOS screenshot utility
+└── pdf_processor.py       # PDF to markdown conversion
+```
+
+## Writing Pack
+
+Supports the [13-stage writing pipeline](/writing-pipeline) from research to publication and archival.
+
+### Commands
+
+| Command | Description |
+|---------|-------------|
+| `/publish-prep` | Prepare a draft for publishing: final checks, formatting, metadata |
+| `/archive-post` | Move published post to canonical archive with metadata |
+| `/challenger` | Run the challenger agent against a draft (devil's advocate) |
+| `/fact-check` | Verify claims, check sources, flag unsupported statements |
+| `/style-compress` | Apply voice compression: remove filler, sharpen language |
+| `/outline` | Generate a structured outline from research notes |
+| `/draft` | Create first draft from outline and research |
+| `/research-gather` | Collect sources on a topic from web and vault |
+| `/synthesize` | Extract patterns and insights from gathered sources |
+| `/distribute` | Format and distribute to publishing platforms |
+| `/canon-index` | Update the canonical content index after publication |
+| `/quality-score` | Score a draft against quality rubric |
+| `/audience-check` | Evaluate draft against target audience profile |
+| `/hook-test` | Test opening hooks against engagement criteria |
+
+### Pipeline Integration
+
+The Writing pack skills are designed to chain together:
+
+```
+/research-gather → /synthesize → /outline → /draft →
+/challenger → /fact-check → /style-compress →
+/publish-prep → /distribute → /archive-post → /canon-index
+```
+
+Each skill produces structured output that the next skill consumes. See [Writing Pipeline](/writing-pipeline) for the full workflow.
+
+## Coding Pack
+
+Code quality, testing, and deployment automation.
+
+### Commands
+
+| Command | Description |
+|---------|-------------|
+| `/verify-changes` | Run tests + type check + lint, report results |
+| `/dev-cleanup` | Kill orphaned dev servers, remove lock files |
+| `/dev-status` | Show running dev servers, git status, pending PRs |
+| `/test-write` | Generate tests for a function or module |
+| `/refactor-plan` | Analyze code and produce a refactoring plan |
+| `/dep-audit` | Audit dependencies for vulnerabilities and updates |
+| `/type-check` | Run TypeScript or Python type checking |
+| `/lint-fix` | Run linter with auto-fix enabled |
+| `/git-sync` | Stage, commit, and push changes with a generated message |
+| `/pr-create` | Create a pull request with auto-generated description |
+
+### Validation Chain
+
+The Coding pack enforces a strict validation chain:
+
+```
+Change code → /verify-changes
+  ├─ Tests pass?     → Continue
+  ├─ Types pass?     → Continue
+  ├─ Lint passes?    → Continue
+  └─ All pass?       → Safe to commit
+```
+
+## Research Pack
+
+Information gathering, evaluation, and synthesis.
+
+### Commands
+
+| Command | Description |
+|---------|-------------|
+| `/deep-research` | Multi-source research with configurable depth |
+| `/source-check` | Validate sources for credibility and recency |
+| `/web-scan` | Scan web for recent information on a topic |
+| `/vault-search` | Search the Obsidian vault for relevant context |
+| `/compare` | Side-by-side comparison of options or approaches |
+| `/summarize` | Produce a structured summary of a document or source |
+| `/cite` | Generate properly formatted citations |
+| `/knowledge-gap` | Identify what you do not know about a topic |
+
+## Strategy Pack
+
+Decision support and analytical frameworks.
+
+### Commands
+
+| Command | Description |
+|---------|-------------|
+| `/decision-matrix` | Build a weighted decision matrix for comparing options |
+| `/portfolio-snapshot` | Current investment positions and allocation percentages |
+| `/dn` | Delta-neutral DeFi position dashboard |
+| `/risk-assess` | Evaluate risk factors for a decision or position |
+| `/scenario-plan` | Map best/worst/likely scenarios with action triggers |
+| `/pre-mortem` | "Assume this failed. Why?" exercise |
+
+## Coaching Pack
+
+Support for the [coaching system](/coaching).
+
+### Commands
+
+| Command | Description |
+|---------|-------------|
+| `/check-in` | Quick structured check-in: energy, focus, blockers |
+| `/weekly-review` | Generate weekly review template with data from all sources |
+| `/reflect` | Guided reflection prompt with journaling template |
+| `/coach` | Invoke a specific coaching persona by name |
+| `/commitment-check` | Review open commitments against progress |
+
+## Organizer Pack
+
+File management, inbox processing, and vault maintenance.
+
+### Commands
+
+| Command | Description |
+|---------|-------------|
+| `/inbox-scan` | List items in inbox locations awaiting triage |
+| `/triage` | Route a file to its correct vault location |
+| `/orphan-fix` | Find and resolve orphaned files (no incoming links) |
+| `/index-rebuild` | Rebuild index files for a vault section |
+| `/archive` | Move items to archive with metadata |
+| `/tag-audit` | Check tag consistency and find unused tags |
+| `/structure-check` | Validate PARA folder structure |
+| `/cleanup` | Remove empty folders, temp files, stale data |
+
+## Creating Your Own Skill Pack
+
+A skill pack is just a group of related commands with a shared README:
+
+```
+~/.claude/commands/
+├── writing/
+│   ├── README.md          # Pack description and usage guide
+│   ├── publish-prep.md
+│   ├── archive-post.md
+│   └── ...
+```
+
+Or, since Claude Code reads all `.md` files in `~/.claude/commands/` flat, you can use naming prefixes instead of subdirectories:
+
+```
+~/.claude/commands/
+├── writing-publish-prep.md
+├── writing-archive-post.md
+├── writing-challenger.md
+└── ...
+```
+
+### Pack Design Principles
+
+1. **Cohesive domain** -- All skills in a pack serve the same domain
+2. **Composable** -- Skills chain together with structured I/O
+3. **Independent** -- Each pack works without requiring other packs
+4. **Documented** -- README explains the pack's purpose and skill inventory
+
+## Next Steps
+
+- [Creating Commands](/skills-commands/creating-commands) -- Write skills for your own packs
+- [Hooks](/skills-commands/hooks) -- Automate skill execution with hooks

@@ -1,0 +1,224 @@
+# Symlink System
+
+InnerOS uses symbolic links to keep Claude Code's configuration directory (`~/.claude/`) synchronized with the Obsidian vault. This ensures a single source of truth: you edit files in the vault, and Claude Code picks them up automatically.
+
+## The Problem Symlinks Solve
+
+Without symlinks, you would have two copies of every agent, command, and script: one in the vault (for Obsidian browsing, git versioning) and one in `~/.claude/` (for Claude Code execution). These copies would inevitably drift apart.
+
+```
+Without symlinks (bad):
+~/Obs_Vault/_System/Claude_Code/Agents/stoic.md    # Version A
+~/.claude/agents/stoic.md                           # Version B (maybe different)
+
+With symlinks (good):
+~/Obs_Vault/_System/Claude_Code/Agents/stoic.md    # Single source of truth
+~/.claude/agents -> ~/Obs_Vault/_System/.../Agents  # Points to source
+```
+
+## What Gets Symlinked
+
+| `~/.claude/` Path | Points To | Contents |
+|-------------------|-----------|----------|
+| `commands/` | `~/Obs_Vault/_System/Claude_Code/Commands/` | 88 slash command definitions |
+| `agents/` | `~/Obs_Vault/_System/Claude_Code/Agents/` | 76 agent definition files |
+| `hooks/` | `~/Obs_Vault/_System/Claude_Code/Hooks/` | Pre/post tool execution hooks |
+| `scripts/` | `~/Obs_Vault/_System/Claude_Code/Scripts/` | Python, Bash, Node utility scripts |
+| `skills/` | `~/Obs_Vault/_System/Claude_Code/Skills/` | Multi-step skill packs |
+
+## What Gets Copied (Not Symlinked)
+
+Settings files contain machine-specific paths and are **copied** rather than symlinked:
+
+| File | Why Copied |
+|------|-----------|
+| `~/.claude/settings.json` | Contains machine-specific permissions and hook paths |
+| `~/.claude/settings.local.json` | Contains local-only permission overrides |
+| `~/.claude/CLAUDE.md` | May contain machine-specific path references |
+
+The vault keeps template versions of these files in `_System/Claude_Code/Settings/`. When you set up a new machine, you copy the templates and edit the paths.
+
+## Setting Up Symlinks
+
+### Initial Setup
+
+```bash
+# Ensure ~/.claude exists
+mkdir -p ~/.claude
+
+# Remove existing directories if they exist (back up first!)
+# WARNING: This deletes existing content. Only run on fresh setup.
+rm -rf ~/.claude/commands ~/.claude/agents ~/.claude/hooks \
+       ~/.claude/scripts ~/.claude/skills
+
+# Create symlinks
+ln -s ~/Obs_Vault/_System/Claude_Code/Commands ~/.claude/commands
+ln -s ~/Obs_Vault/_System/Claude_Code/Agents ~/.claude/agents
+ln -s ~/Obs_Vault/_System/Claude_Code/Hooks ~/.claude/hooks
+ln -s ~/Obs_Vault/_System/Claude_Code/Scripts ~/.claude/scripts
+ln -s ~/Obs_Vault/_System/Claude_Code/Skills ~/.claude/skills
+```
+
+### Verification
+
+```bash
+# Check all symlinks are valid
+ls -la ~/.claude/ | grep "^l"
+
+# Expected output (paths will vary):
+# commands -> /Users/you/Obs_Vault/_System/Claude_Code/Commands
+# agents   -> /Users/you/Obs_Vault/_System/Claude_Code/Agents
+# hooks    -> /Users/you/Obs_Vault/_System/Claude_Code/Hooks
+# scripts  -> /Users/you/Obs_Vault/_System/Claude_Code/Scripts
+# skills   -> /Users/you/Obs_Vault/_System/Claude_Code/Skills
+```
+
+### Validation Script
+
+You can automate the check:
+
+```bash
+#!/bin/bash
+# verify-symlinks.sh
+
+VAULT="$HOME/Obs_Vault/_System/Claude_Code"
+CLAUDE="$HOME/.claude"
+
+DIRS=("commands:Commands" "agents:Agents" "hooks:Hooks" "scripts:Scripts" "skills:Skills")
+
+for pair in "${DIRS[@]}"; do
+  LOCAL="${pair%%:*}"
+  REMOTE="${pair##*:}"
+
+  if [ -L "$CLAUDE/$LOCAL" ]; then
+    TARGET=$(readlink "$CLAUDE/$LOCAL")
+    if [ "$TARGET" = "$VAULT/$REMOTE" ]; then
+      echo "[OK] $LOCAL -> $TARGET"
+    else
+      echo "[WARN] $LOCAL points to $TARGET (expected $VAULT/$REMOTE)"
+    fi
+  else
+    echo "[FAIL] $CLAUDE/$LOCAL is not a symlink"
+  fi
+done
+```
+
+## Directory Structure in the Vault
+
+The vault's `_System/Claude_Code/` directory mirrors what Claude Code expects:
+
+```
+_System/Claude_Code/
+├── Commands/
+│   ├── contxt.md           # /contxt - Load personal context
+│   ├── focus.md            # /focus - ADHD focus check
+│   ├── audit.md            # /audit - Vault health check
+│   ├── weekly-review.md    # /weekly-review - Generate review
+│   └── ... (88 total)
+│
+├── Agents/
+│   ├── stoic.md            # The Stoic coaching persona
+│   ├── operator.md         # The Operator coaching persona
+│   ├── email-triage.md     # Email classification agent
+│   ├── nightcrew.md        # NightCrew orchestrator
+│   └── ... (76 total)
+│
+├── Hooks/
+│   ├── pre-commit.sh       # Pre-commit validation
+│   ├── stop-hook.sh        # Re-inject context on stop
+│   └── ...
+│
+├── Scripts/
+│   ├── weekly_data_fetcher.py
+│   ├── calendar_reader.py
+│   ├── photo_triage.py
+│   ├── secrets_manager.py
+│   └── ...
+│
+├── Skills/
+│   └── (skill directories)
+│
+└── Settings/
+    ├── settings.json       # Template (copy to ~/.claude/)
+    └── settings.local.json # Template (copy to ~/.claude/)
+```
+
+## Editing Workflow
+
+Because of symlinks, you can edit configuration in either location:
+
+### Via Obsidian (Recommended)
+
+1. Open the vault in Obsidian
+2. Navigate to `_System/Claude_Code/Commands/`
+3. Edit or create a command file
+4. Save -- Claude Code picks it up immediately
+
+### Via Terminal
+
+```bash
+# These are the same file:
+vim ~/Obs_Vault/_System/Claude_Code/Commands/focus.md
+vim ~/.claude/commands/focus.md  # symlink, same file
+```
+
+### Via Claude Code
+
+```
+# Inside a Claude Code session:
+Read ~/.claude/commands/focus.md
+# Then edit it -- changes land in the vault
+```
+
+## Gotchas and Troubleshooting
+
+### Broken Symlinks
+
+If the vault path changes (e.g., you move it), symlinks break:
+
+```bash
+# Check for broken symlinks
+find ~/.claude -type l ! -exec test -e {} \; -print
+
+# Fix by re-creating with new path
+ln -sf /new/vault/path/_System/Claude_Code/Commands ~/.claude/commands
+```
+
+### Obsidian Sync and Symlinks
+
+Obsidian Sync syncs the vault contents (the symlink targets), not the symlinks themselves. This means:
+- Editing a command on one machine syncs the change to other machines' vaults
+- But each machine needs its own `~/.claude/` symlinks set up independently
+
+### Claude Code Not Finding Commands
+
+If `/command-name` returns "not found":
+
+1. Check the symlink: `ls -la ~/.claude/commands`
+2. Check the file exists in the vault: `ls ~/Obs_Vault/_System/Claude_Code/Commands/`
+3. Check the filename matches: command files must be named `command-name.md`
+4. Restart Claude Code (it caches the command list on startup)
+
+### Permissions
+
+Symlinks inherit the permissions of their target. If scripts are not executable:
+
+```bash
+# Make all scripts executable
+chmod +x ~/Obs_Vault/_System/Claude_Code/Scripts/*.py
+chmod +x ~/Obs_Vault/_System/Claude_Code/Scripts/*.sh
+chmod +x ~/Obs_Vault/_System/Claude_Code/Hooks/*.sh
+```
+
+## Why Not Just Use the Vault Directly?
+
+Claude Code reads its configuration from `~/.claude/`. There is no setting to change this path. Symlinks are the cleanest way to redirect it to the vault without forking Claude Code or maintaining a copy script.
+
+The alternative approaches and why they are worse:
+
+| Approach | Problem |
+|----------|---------|
+| Copy files on change | Files drift, requires remembering to copy |
+| Watch script (fswatch) | Extra process, can miss changes, race conditions |
+| Git submodule | Adds complexity, merge conflicts |
+| Symlinks | Zero maintenance, zero drift, zero extra processes |

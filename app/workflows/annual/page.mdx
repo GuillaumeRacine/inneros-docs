@@ -1,0 +1,221 @@
+# Annual Workflows
+
+Annual workflows provide the longest-range perspective in InnerOS. They happen once a year -- typically between Christmas and New Year's -- and set the direction for the entire year ahead. Three workflows run over 2-3 days.
+
+## Annual Review Cycle
+
+```
+Q1 Review ──────────┐
+Q2 Review ──────────┤
+Q3 Review ──────────┼──→ Annual Reflection ──→ Year Theme
+Q4 Review ──────────┤         │                    │
+52 Weekly Reviews ──┘         │                    │
+                              ▼                    ▼
+                     Year-in-Review Doc    Annual Goal Setting
+                     (retrospective)       (prospective)
+```
+
+## Annual Reflection
+
+The deepest reflective exercise in InnerOS. This is not a quick review -- it is a deliberate, multi-hour process that produces a comprehensive document.
+
+### Reflection Questionnaire
+
+```markdown
+## Annual Reflection Questions
+
+### Looking Back
+1. What were the 3-5 most significant events of this year?
+2. What accomplishment are you most proud of?
+3. What was your biggest failure or regret?
+4. What did you learn about yourself this year?
+5. What relationships deepened? Which ones faded?
+
+### Patterns
+6. What habits stuck? Which ones didn't?
+7. Where did you consistently over-commit?
+8. What did you keep avoiding all year?
+9. When were you most energized? Most drained?
+
+### Values Alignment
+10. Did you live according to your stated values?
+11. Where were you out of integrity?
+12. What would you do differently if you could replay the year?
+
+### Gratitude
+13. What are you most grateful for?
+14. Who made a meaningful difference in your life?
+```
+
+### Data Aggregation
+
+The annual review pulls from 12 monthly summaries:
+
+```python
+# annual_aggregation.py (simplified)
+def compile_annual_review(year):
+    monthly_data = [
+        load_monthly_data(year, month)
+        for month in range(1, 13)
+    ]
+
+    return {
+        "total_focus_hours": sum(m.focus_hours for m in monthly_data),
+        "total_commits": sum(m.commits for m in monthly_data),
+        "articles_published": sum(m.articles for m in monthly_data),
+        "avg_sleep_score": mean(m.sleep_avg for m in monthly_data),
+        "total_workout_days": sum(m.workout_days for m in monthly_data),
+        "books_read": sum(m.books for m in monthly_data),
+        "commitment_ratio": mean(m.commitment_ratio for m in monthly_data),
+        "domain_scores_by_quarter": [
+            quarterly_domain_scores(year, q) for q in range(1, 5)
+        ],
+    }
+```
+
+### Year-in-Review Document
+
+The agent synthesizes questionnaire answers and aggregated data into a narrative:
+
+```markdown
+# 2025 Year in Review
+
+## The Year in Numbers
+| Metric | Value | Context |
+|--------|-------|---------|
+| Focus hours | 1,340 | ~26 hrs/week average |
+| Git commits | 2,847 | Across 12 repositories |
+| Articles published | 28 | Mostly in H2 |
+| Workouts | 196/260 | 75% adherence |
+| Books read | 14 | Target was 24 |
+| Avg sleep score | 77 | Below 80 target |
+| Commitment ratio | 72% | Improving trend |
+
+## Quarter-by-Quarter Arc
+- **Q1**: Foundation building. Set up InnerOS, established routines.
+- **Q2**: Struggle. Health dip, writing drought, system fragility.
+- **Q3**: Recovery. NightCrew stabilized, writing restarted.
+- **Q4**: Acceleration. Best quarter for output and well-being.
+
+## Life Domain Trajectory
+| Domain | Q1 | Q2 | Q3 | Q4 | Trend |
+|--------|----|----|----|----|-------|
+| Health | 6 | 5 | 7 | 7 | ↗ |
+| Family | 7 | 7 | 8 | 8 | ↗ |
+| Finance | 5 | 6 | 6 | 6 | → |
+| Music | 5 | 3 | 4 | 4 | ↘ |
+| Writing | 3 | 4 | 5 | 6 | ↗ |
+| Career | 6 | 6 | 7 | 7 | ↗ |
+
+## Key Lessons
+1. Systems beat motivation. The months with working automation
+   were the most productive months.
+2. Avoidance is the #1 enemy. Writing, music, and difficult
+   conversations all suffered from the same pattern.
+3. Health is the foundation. Every good quarter started with
+   consistent sleep and exercise.
+```
+
+## Year Theme
+
+Rather than traditional resolutions, InnerOS uses a **year theme** -- a single word or phrase that acts as a decision-making filter for the entire year.
+
+```yaml
+name: year-theme-selection
+cadence: annual
+trigger: Late December
+duration: 1-2 hours
+
+steps:
+  - name: Review candidate themes
+    type: agent
+    prompt: |
+      Based on the annual review, suggest 5 candidate themes
+      for next year. Each theme should:
+      - Address the biggest gap or opportunity identified
+      - Be broad enough to apply across all life domains
+      - Be specific enough to guide daily decisions
+      - Be stated as 1-3 words
+
+  - name: Select theme
+    type: human
+    prompt: |
+      Choose one theme. Test it: does it help you decide
+      between two activities on a random Tuesday afternoon?
+
+  - name: Document theme
+    type: automated
+    output: Goals/year_theme_{year}.md
+```
+
+### Theme Examples
+
+| Year | Theme | Rationale |
+|------|-------|-----------|
+| 2024 | "Build the Machine" | Focus on systems over output |
+| 2025 | "Ship and Share" | Move from building to publishing |
+| 2026 | "Depth over Breadth" | Too many domains, not enough mastery |
+
+The theme is referenced in weekly reviews, monthly check-ins, and quarterly planning. When facing a decision, the question becomes: "Does this align with my year theme?"
+
+## Annual Goal Setting
+
+Goals for the year are structured as annual objectives that cascade into quarterly OKRs:
+
+```markdown
+# 2026 Annual Goals
+
+## Theme: "Depth over Breadth"
+
+### Goal 1: Master one creative domain
+Annual target: 150 music sessions, 1 album/EP released
+- Q1: Rebuild habit (3x/week), learn 5 new techniques
+- Q2: Record 4 tracks, develop consistent sound
+- Q3: Produce and mix 6 tracks
+- Q4: Release, promote, reflect
+
+### Goal 2: Achieve financial independence milestone
+Annual target: Portfolio reaches $X milestone
+- Q1: Optimize DeFi yields, reduce fees
+- Q2: Increase savings rate by 10%
+- Q3: Rebalance into long-term positions
+- Q4: Year-end tax optimization
+
+### Goal 3: Publish a body of work
+Annual target: 40 articles, 2000 subscribers
+- Q1: 8 articles, establish weekly cadence
+- Q2: 10 articles, launch newsletter series
+- Q3: 12 articles, guest posts
+- Q4: 10 articles, compile best-of collection
+
+### Goal 4: Strengthen family bonds
+Annual target: Weekly 1-on-1 time with each family member
+- Each quarter: Maintain consistency, add one new shared activity
+```
+
+## Annual System Overhaul
+
+The end of year is also when InnerOS itself gets a major review:
+
+```yaml
+steps:
+  - Review all 76 agents: retire unused, consolidate similar ones
+  - Audit all 88 commands: remove broken, update deprecated
+  - Review NightCrew stages: add/remove based on current needs
+  - Update master_context.md with new year's priorities
+  - Archive previous year's logs and data
+  - Reset quarterly planning files
+  - Test all automation pipelines end-to-end
+```
+
+## Annual Schedule
+
+| Workflow | When | Duration |
+|----------|------|----------|
+| Data aggregation | Dec 26 | 1 hour (mostly automated) |
+| Annual reflection | Dec 27-28 | 3-4 hours (spread across 2 days) |
+| Year theme selection | Dec 29 | 1-2 hours |
+| Annual goal setting | Dec 30 | 2-3 hours |
+| System overhaul | Dec 31 | 2-4 hours |
+
+Total: approximately one full day of active work spread across the final week of December.
