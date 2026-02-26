@@ -1,0 +1,68 @@
+# InnerOS
+
+**A Personal Operating System for Life Management**
+
+InnerOS is a production-grade personal operating system built on [Claude Code](https://claude.ai/claude-code), Obsidian, and automation scripts. It manages every domain of life through autonomous agents, deterministic skills, coaching personas, and nightly automation pipelines.
+
+## What's Inside
+
+| Component | Count | Purpose |
+|-----------|-------|---------|
+| [Agents](/agents) | 76 | Autonomous task executors across 9 domains |
+| [Commands & Skills](/skills-commands) | 88 | User-invoked deterministic procedures |
+| [Coaching Personas](/coaching) | 16 | Personal development and decision-making guides |
+| [Writing Pipeline](/writing-pipeline) | 13 stages | End-to-end content creation system |
+| [NightCrew Automation](/automation/nightcrew) | 21 stages | Nightly processing pipeline |
+| [Data Integrations](/data-sources) | 12+ | Health, finance, calendar, messaging, and more |
+| [Workflows](/workflows) | 50+ | Daily, weekly, monthly, quarterly, annual cadences |
+
+## Design Principles
+
+1. **ADHD as design constraint** - Every interaction is optimized for executive function: short prompts, clear next actions, no ambiguity
+2. **Non-deterministic reasoning + deterministic control** - AI agents handle judgment; scripts handle procedure
+3. **PARA structure** - Projects, Areas, Resources, Archives organize everything
+4. **Validation is non-optional** - Nothing is "done" until tests pass
+5. **Agents don't self-determine completion** - Objective criteria decide when work is finished
+
+## Quick Start
+
+```bash
+# Clone the template
+git clone https://github.com/GuillaumeRacine/inneros-docs
+# Read the getting started guide
+```
+
+Then head to [Getting Started](/getting-started) to set up your own InnerOS.
+
+## Who This Is For
+
+- People who want to **systematize life management** without losing flexibility
+- Claude Code users who want to see what's possible with agents, skills, and automation
+- Anyone with **ADHD** who needs externalized executive function
+- Builders who prefer **open, inspectable systems** over black-box apps
+
+## Architecture at a Glance
+
+```
+You (human)
+  │
+  ├── Claude Code CLI
+  │     ├── 76 Agents (autonomous, domain-specific)
+  │     ├── 88 Commands/Skills (deterministic procedures)
+  │     └── 16 Coaching Personas (guided reflection)
+  │
+  ├── Obsidian Vault (PARA structure)
+  │     ├── InnerOS context (identity, goals, workflows)
+  │     ├── Knowledge base (areas, resources)
+  │     └── Tracking data (metrics, logs)
+  │
+  └── NightCrew (21-stage nightly pipeline)
+        ├── File organization
+        ├── Communication triage
+        ├── Data aggregation
+        └── Morning brief preparation
+```
+
+## Open Source
+
+InnerOS is open source. Fork it, adapt it, make it yours. The [Customization](/customization) section shows you how to replace every personal detail with your own.

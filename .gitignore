@@ -1,0 +1,11 @@
+node_modules/
+.next/
+out/
+dist/
+.DS_Store
+*.tsbuildinfo
+next-env.d.ts
+
+# Generated docs state
+scripts/__pycache__/
+config/docs_refresh_state.json
