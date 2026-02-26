@@ -9,3 +9,4 @@ next-env.d.ts
 # Generated docs state
 scripts/__pycache__/
 config/docs_refresh_state.json
+.vercel
