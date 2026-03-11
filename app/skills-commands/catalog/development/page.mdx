@@ -2,47 +2,47 @@
 
 Commands for coding, deployment, testing, and validation.
 
-**27 commands** in this category.
+**35 commands** in this category.
 
 | Command | Description |
 |---------|-------------|
-| `/analyze-batch` | --- |
 | `/book-convert` | Convert a PDF book to clean, well-formatted markdown optimized for Obsidian and LLM analysis. |
+| `/book-distill` | Full book distillation pipeline: PDF/MD book → chapter extraction → 3-lens distillation (phenomenology, facts, actions) → thematic synthesis. |
+| `/company-research` | --- |
 | `/context` | Show what context Claude Code and subagents have access to - helps understand the "inputs" to reasoning. |
+| `/context-curate` | Run the weekly context curation pipeline. Reviews observations, graduates insights to permanent files, and produces a quality report. |
 | `/contxt` | --- |
 | `/data-sources-gaps` | Show data sources missing agent coverage with detailed recommendations. |
 | `/deploy` | --- |
 | `/dev-cleanup` | Clean up development environment before human handoff. Kills orphaned processes, removes lock files, and verifies ports are available. |
+| `/docs-refresh` | --- |
+| `/earnings-extract` | Extract financial data from quarterly earnings PDFs. Converts PDFs to markdown, then guides Claude through structured extraction using 5-stage prompts (financial, strategic, validation, normalization, |
 | `/feedback` | Record feedback on signals, recommendations, or predictions. |
-| `/ghost-cleanup` | Run Ghost League file maintenance and cleanup tasks. |
 | `/learn` | Extract and document learnings from the current conversation or work session. |
 | `/learning-quiz` | Active recall quiz for COMP 272 Data Structures. Tests retention at the appropriate depth layer. |
 | `/new-proto` | --- |
 | `/open` | --- |
 | `/pdf-split` | Convert PDF to a single searchable markdown file. |
 | `/read-first` | --- |
+| `/research-papers` | Search ArXiv (1.5M+ papers) and Semantic Scholar (200M+ papers) for research papers. Returns formatted results with titles, authors, abstracts, citations, and PDF links. |
 | `/research-parallel` | --- |
 | `/screenshot` | --- |
 | `/ship` | --- |
 | `/slides` | --- |
 | `/test-personas` | --- |
 | `/thinking` | Show recent Claude Code activity - what tools were called, what happened, and the reasoning flow. |
+| `/transcribe` | Extract, summarize, and generate audio from any URL (YouTube, web articles, podcasts). |
 | `/usc` | Fetch and display the most recent screenshot from the Screenshots folder. |
 | `/uscp` | Upload Screenshot from Phone — fetch and display the latest iPhone screenshot(s) from Photos Library. |
 | `/validate-links` | Validate all file paths in config files are still valid. |
+| `/vault-ingest` | > `/vault-ingest <source_path> [destination]` - Import external content into the vault with proper classification |
 | `/verify-changes` | Run this skill after making code changes to verify they work before presenting to the user. |
+| `/verify-deploy` | --- |
 | `/verify-web` | --- |
+| `/vm` | Fetch the last N voice memos, transcribe them via OpenAI Whisper, and present processed summaries. |
 | `/web-check` | --- |
 
 ## Command Details
-
-### /analyze-batch
-
----
-
-**Usage:** `/analyze-batch "Q1 portfolio review" CompanyA CompanyB CompanyC`
-
----
 
 ### /book-convert
 
@@ -52,11 +52,35 @@ Convert a PDF book to clean, well-formatted markdown optimized for Obsidian and 
 
 ---
 
+### /book-distill
+
+Full book distillation pipeline: PDF/MD book → chapter extraction → 3-lens distillation (phenomenology, facts, actions) → thematic synthesis.
+
+**Usage:** `/book-distill <input_file> [model] [output_dir]`
+
+---
+
+### /company-research
+
+---
+
+**Usage:** `/company-research SHOP`
+
+---
+
 ### /context
 
 Show what context Claude Code and subagents have access to - helps understand the "inputs" to reasoning.
 
 **Usage:** `/context`
+
+---
+
+### /context-curate
+
+Run the weekly context curation pipeline. Reviews observations, graduates insights to permanent files, and produces a quality report.
+
+**Usage:** `/context-curate`
 
 ---
 
@@ -92,19 +116,27 @@ Clean up development environment before human handoff. Kills orphaned processes,
 
 ---
 
+### /docs-refresh
+
+---
+
+**Usage:** `/docs-refresh              # Full refresh (all sections)`
+
+---
+
+### /earnings-extract
+
+Extract financial data from quarterly earnings PDFs. Converts PDFs to markdown, then guides Claude through structured extraction using 5-stage prompts (financial, strategic, validation, normalization,
+
+**Usage:** `/earnings-extract <command> [quarter] [company]`
+
+---
+
 ### /feedback
 
 Record feedback on signals, recommendations, or predictions.
 
 **Usage:** `/feedback <target_id> <rating>`
-
----
-
-### /ghost-cleanup
-
-Run Ghost League file maintenance and cleanup tasks.
-
-**Usage:** `/ghost-cleanup [--dry-run] [--execute] [--retention] [--report]`
 
 ---
 
@@ -156,6 +188,14 @@ Convert PDF to a single searchable markdown file.
 
 ---
 
+### /research-papers
+
+Search ArXiv (1.5M+ papers) and Semantic Scholar (200M+ papers) for research papers. Returns formatted results with titles, authors, abstracts, citations, and PDF links.
+
+**Usage:** `/research-papers <query> [options]`
+
+---
+
 ### /research-parallel
 
 ---
@@ -204,6 +244,14 @@ Show recent Claude Code activity - what tools were called, what happened, and th
 
 ---
 
+### /transcribe
+
+Extract, summarize, and generate audio from any URL (YouTube, web articles, podcasts).
+
+**Usage:** `/transcribe <url> [voice] [options]`
+
+---
+
 ### /usc
 
 Fetch and display the most recent screenshot from the Screenshots folder.
@@ -228,6 +276,14 @@ Validate all file paths in config files are still valid.
 
 ---
 
+### /vault-ingest
+
+> `/vault-ingest <source_path> [destination]` - Import external content into the vault with proper classification
+
+**Usage:** `/vault-ingest`
+
+---
+
 ### /verify-changes
 
 Run this skill after making code changes to verify they work before presenting to the user.
@@ -236,11 +292,27 @@ Run this skill after making code changes to verify they work before presenting t
 
 ---
 
+### /verify-deploy
+
+---
+
+**Usage:** `/verify-deploy`
+
+---
+
 ### /verify-web
 
 ---
 
 **Usage:** `/verify-web https://example.com "h1"`
+
+---
+
+### /vm
+
+Fetch the last N voice memos, transcribe them via OpenAI Whisper, and present processed summaries.
+
+**Usage:** `/vm`
 
 ---
 
