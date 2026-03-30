@@ -2,13 +2,12 @@
 
 Agents for delta-neutral strategies, position tracking, yield monitoring, and DeFi operations.
 
-**24 agents** in this domain.
+**23 agents** in this domain.
 
 | Agent | Description |
 |-------|-------------|
 | `dn-bar-raiser` | Quality control agent that validates data accuracy, catches errors, and ensures all returns/efficiency calculations meet quality standards before being used for decisions. |
 | `dn-capital-efficiency` | Analyze and optimize capital deployment across Delta-Neutral CLM positions to maximize risk-adjusted returns. |
-| `dn-cli-team` | A team of specialized agents powering the DN Crypto CLI dashboard. |
 | `dn-data-validator` | Validates DN Monitor data against on-chain sources. Ensures ground truth. |
 | `dn-learner` | Continuous improvement agent that analyzes historical performance, identifies patterns, and generates actionable insights to improve DN strategy returns over time. |
 | `dn-master-trader` | Probabilistic orchestrator for the DN Monitor trading system. Coordinates subagents for analysis, diagnostics, and insights while respecting the deterministic execution core. |
@@ -19,10 +18,10 @@ Agents for delta-neutral strategies, position tracking, yield monitoring, and De
 | `dn-returns-tracker` | Track, calculate, and report accurate returns data for all Delta-Neutral CLM positions across chains and DEXs. |
 | `dn-staleness-monitor` | Monitors data freshness and alerts on stale data. Prevents display of outdated information. |
 | `dn-team-index` | ``` |
-| `dn-tx-auditor` | Quality control agent that validates the entire transaction tracking pipeline. |
-| `dn-tx-collector` | Collect and store raw transaction data from all DN strategy wallets across chains. |
-| `dn-tx-parser` | Parse raw transactions into categorized CLM operations with derived fields. |
-| `dn-ux-expert` | Expert interface designer and implementer for the DN Crypto CLI/TUI application. Responsible for enforcing high-quality, consistent, and intuitive user experience across all views and interactions. |
+| `dn-trader` | > Autonomous on-chain execution agent for the delta-neutral CLM strategy. |
+| `dn-tx-auditor` | > **Role**: Quality control for the transaction tracking pipeline |
+| `dn-tx-collector` | > **Role**: Collect and store raw transaction data from all DN strategy wallets |
+| `dn-tx-parser` | > **Role**: Parse raw transactions into categorized CLM operations |
 | `dn-yield-tracker` | Track, measure, and report yield across all CLM positions with both **current** (run rate) and **historical** (claimed) views. |
 | `hedge-manager` | > **Role**: Own all perpetual hedge positions on Hyperliquid |
 | `investment-analyst` | > Strategic evaluation layer for capital allocation decisions |
@@ -42,12 +41,6 @@ Quality control agent that validates data accuracy, catches errors, and ensures 
 ### Dn Capital Efficiency
 
 Analyze and optimize capital deployment across Delta-Neutral CLM positions to maximize risk-adjusted returns.
-
----
-
-### Dn Cli Team
-
-A team of specialized agents powering the DN Crypto CLI dashboard.
 
 ---
 
@@ -119,27 +112,29 @@ Monitors data freshness and alerts on stale data. Prevents display of outdated i
 
 ---
 
+### Dn Trader
+
+> Autonomous on-chain execution agent for the delta-neutral CLM strategy.
+
+**Type:** `dn`
+
+---
+
 ### Dn Tx Auditor
 
-Quality control agent that validates the entire transaction tracking pipeline.
+> **Role**: Quality control for the transaction tracking pipeline
 
 ---
 
 ### Dn Tx Collector
 
-Collect and store raw transaction data from all DN strategy wallets across chains.
+> **Role**: Collect and store raw transaction data from all DN strategy wallets
 
 ---
 
 ### Dn Tx Parser
 
-Parse raw transactions into categorized CLM operations with derived fields.
-
----
-
-### Dn Ux Expert
-
-Expert interface designer and implementer for the DN Crypto CLI/TUI application. Responsible for enforcing high-quality, consistent, and intuitive user experience across all views and interactions.
+> **Role**: Parse raw transactions into categorized CLM operations
 
 ---
 

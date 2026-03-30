@@ -46,7 +46,48 @@ def sanitize(text: str, rules: dict | None = None) -> str:
     for rule in rules["regex_patterns"]:
         text = re.sub(rule["pattern"], rule["replacement"], text)
 
+    # 4. Escape MDX-breaking HTML-like patterns
+    text = escape_mdx(text)
+
     return text
+
+
+def escape_mdx(text: str) -> str:
+    """Escape HTML-like patterns that break MDX parsing.
+
+    Catches:
+    - Bare <tag> outside code blocks/backticks (e.g. <id>, <3KB)
+    - Angle brackets used as less-than in prose
+    """
+    lines = text.split("\n")
+    result = []
+    in_code_block = False
+
+    for line in lines:
+        # Track fenced code blocks
+        if line.strip().startswith("```"):
+            in_code_block = not in_code_block
+            result.append(line)
+            continue
+
+        if in_code_block:
+            result.append(line)
+            continue
+
+        # Outside code blocks: escape bare < that aren't in inline code
+        # Split by inline code spans to preserve them
+        parts = re.split(r"(`[^`]+`)", line)
+        escaped_parts = []
+        for part in parts:
+            if part.startswith("`") and part.endswith("`"):
+                escaped_parts.append(part)
+            else:
+                # Replace < followed by a word char or digit (looks like a tag)
+                part = re.sub(r"<(\w)", r"&lt;\1", part)
+                escaped_parts.append(part)
+        result.append("".join(escaped_parts))
+
+    return "\n".join(result)
 
 
 def sanitize_file(filepath: Path, rules: dict | None = None) -> str:

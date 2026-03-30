@@ -9,7 +9,7 @@ Reads from 0_InnerContext/Coaching/Coaches/ and generates:
 import re
 from pathlib import Path
 
-from sanitizer import sanitize, load_rules
+from sanitizer import sanitize, load_rules, escape_mdx
 
 COACHES_DIR = Path.home() / "Obs_Vault" / "0_InnerContext" / "Coaching" / "Coaches"
 OUTPUT_COACHES = Path(__file__).parent.parent / "app" / "coaching" / "coaches"
@@ -186,7 +186,7 @@ def run():
         slug = coach["name"].lower().replace("_", "-")
         page_dir = OUTPUT_COACHES / slug
         page_dir.mkdir(parents=True, exist_ok=True)
-        content = generate_coach_page(coach)
+        content = escape_mdx(generate_coach_page(coach))
         (page_dir / "page.mdx").write_text(content)
         print(f"  Generated coaches/{slug}/page.mdx")
 
@@ -195,7 +195,7 @@ def run():
         slug = coach["name"].lower().replace("_", "-")
         page_dir = OUTPUT_COACHES / slug
         page_dir.mkdir(parents=True, exist_ok=True)
-        content = generate_coach_page(coach)
+        content = escape_mdx(generate_coach_page(coach))
         (page_dir / "page.mdx").write_text(content)
         print(f"  Generated coaches/{slug}/page.mdx")
 
@@ -204,7 +204,7 @@ def run():
         slug = coach["name"].lower().replace("_", "-")
         page_dir = OUTPUT_REVIEWS / slug
         page_dir.mkdir(parents=True, exist_ok=True)
-        content = generate_coach_page(coach)
+        content = escape_mdx(generate_coach_page(coach))
         (page_dir / "page.mdx").write_text(content)
         print(f"  Generated review-agents/{slug}/page.mdx")
 

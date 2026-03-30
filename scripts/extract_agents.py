@@ -7,7 +7,7 @@ Groups agents by domain and generates one MDX page per domain category.
 import re
 from pathlib import Path
 
-from sanitizer import sanitize, load_rules
+from sanitizer import sanitize, load_rules, escape_mdx
 
 AGENTS_DIR = Path.home() / ".claude" / "agents"
 OUTPUT_DIR = Path(__file__).parent.parent / "app" / "agents" / "catalog"
@@ -205,7 +205,7 @@ def run(output_dir: Path = OUTPUT_DIR):
 
         page_dir = output_dir / domain
         page_dir.mkdir(parents=True, exist_ok=True)
-        (page_dir / "page.mdx").write_text(content)
+        (page_dir / "page.mdx").write_text(escape_mdx(content))
         print(f"  Generated {domain}/page.mdx ({len(agents)} agents)")
 
     # Generate _meta.js

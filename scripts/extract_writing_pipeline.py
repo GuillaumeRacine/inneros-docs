@@ -8,7 +8,7 @@ one MDX page per pipeline stage.
 import re
 from pathlib import Path
 
-from sanitizer import sanitize, load_rules
+from sanitizer import sanitize, load_rules, escape_mdx
 
 WRITING_AGENTS_DIR = Path.home() / "Obs_Vault" / "0_InnerContext" / "Workflows" / "Writing" / "Agents"
 OUTPUT_DIR = Path(__file__).parent.parent / "app" / "writing-pipeline" / "stages"
@@ -173,7 +173,7 @@ def run(output_dir: Path = OUTPUT_DIR):
         page_dir = output_dir / slug
         page_dir.mkdir(parents=True, exist_ok=True)
         content = generate_stage_page(agent)
-        (page_dir / "page.mdx").write_text(content)
+        (page_dir / "page.mdx").write_text(escape_mdx(content))
         print(f"  Generated stages/{slug}/page.mdx")
 
     meta = generate_meta(agents)

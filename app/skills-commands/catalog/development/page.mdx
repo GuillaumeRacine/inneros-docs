@@ -2,13 +2,19 @@
 
 Commands for coding, deployment, testing, and validation.
 
-**35 commands** in this category.
+**56 commands** in this category.
 
 | Command | Description |
 |---------|-------------|
+| `/agent-leaderboard` | Generate weekly agent performance leaderboard from Claude Code session logs. |
+| `/analyze-batch` | --- |
 | `/book-convert` | Convert a PDF book to clean, well-formatted markdown optimized for Obsidian and LLM analysis. |
 | `/book-distill` | Full book distillation pipeline: PDF/MD book → chapter extraction → 3-lens distillation (phenomenology, facts, actions) → thematic synthesis. |
+| `/buy` | Create a Shopify cart and open checkout for a gift product. Works with products from `/gift` recommendations. |
+| `/closeday` | --- |
 | `/company-research` | --- |
+| `/connect` | --- |
+| `/contacts` | Unified contact management across all communication channels. |
 | `/context` | Show what context Claude Code and subagents have access to - helps understand the "inputs" to reasoning. |
 | `/context-curate` | Run the weekly context curation pipeline. Reviews observations, graduates insights to permanent files, and produces a quality report. |
 | `/contxt` | --- |
@@ -17,20 +23,35 @@ Commands for coding, deployment, testing, and validation.
 | `/dev-cleanup` | Clean up development environment before human handoff. Kills orphaned processes, removes lock files, and verifies ports are available. |
 | `/docs-refresh` | --- |
 | `/earnings-extract` | Extract financial data from quarterly earnings PDFs. Converts PDFs to markdown, then guides Claude through structured extraction using 5-stage prompts (financial, strategic, validation, normalization, |
+| `/experiment` | Run autonomous experiment loops for any domain with measurable outcomes. |
 | `/feedback` | Record feedback on signals, recommendations, or predictions. |
+| `/ghost` | --- |
+| `/gift` | Find the perfect gift through a quick conversation. Uses Present Agent's recommendation engine with 171K products, real customer reviews, and gift intelligence. |
+| `/graduate` | --- |
+| `/ideas` | --- |
 | `/learn` | Extract and document learnings from the current conversation or work session. |
 | `/learning-quiz` | Active recall quiz for COMP 272 Data Structures. Tests retention at the appropriate depth layer. |
+| `/money` | Quick financial overview: payments due, account balances, upcoming obligations, and optimization opportunities. |
+| `/monitor-add` | --- |
+| `/monitor-run` | --- |
 | `/new-proto` | --- |
 | `/open` | --- |
 | `/pdf-split` | Convert PDF to a single searchable markdown file. |
 | `/read-first` | --- |
+| `/remind` | Check upcoming occasions from Google Calendar and Contacts. Shows who has birthdays, anniversaries, or events coming up so you never miss a gift opportunity. |
+| `/research` | --- |
+| `/research-monitor-cmd` | --- |
 | `/research-papers` | Search ArXiv (1.5M+ papers) and Semantic Scholar (200M+ papers) for research papers. Returns formatted results with titles, authors, abstracts, citations, and PDF links. |
 | `/research-parallel` | --- |
+| `/research-read` | --- |
 | `/screenshot` | --- |
 | `/ship` | --- |
 | `/slides` | --- |
+| `/substack-post` | Publish a draft to Substack using Playwright browser automation. |
 | `/test-personas` | --- |
 | `/thinking` | Show recent Claude Code activity - what tools were called, what happened, and the reasoning flow. |
+| `/today` | --- |
+| `/trace` | --- |
 | `/transcribe` | Extract, summarize, and generate audio from any URL (YouTube, web articles, podcasts). |
 | `/usc` | Fetch and display the most recent screenshot from the Screenshots folder. |
 | `/uscp` | Upload Screenshot from Phone — fetch and display the latest iPhone screenshot(s) from Photos Library. |
@@ -43,6 +64,22 @@ Commands for coding, deployment, testing, and validation.
 | `/web-check` | --- |
 
 ## Command Details
+
+### /agent-leaderboard
+
+Generate weekly agent performance leaderboard from Claude Code session logs.
+
+**Usage:** `/agent-leaderboard           # Current week (last 7 days)`
+
+---
+
+### /analyze-batch
+
+---
+
+**Usage:** `/analyze-batch "Q1 portfolio review" CompanyA CompanyB CompanyC`
+
+---
 
 ### /book-convert
 
@@ -60,11 +97,43 @@ Full book distillation pipeline: PDF/MD book → chapter extraction → 3-lens d
 
 ---
 
+### /buy
+
+Create a Shopify cart and open checkout for a gift product. Works with products from `/gift` recommendations.
+
+**Usage:** `/buy`
+
+---
+
+### /closeday
+
+---
+
+**Usage:** `/closeday`
+
+---
+
 ### /company-research
 
 ---
 
 **Usage:** `/company-research SHOP`
+
+---
+
+### /connect
+
+---
+
+**Usage:** `/connect <topic A> <topic B>`
+
+---
+
+### /contacts
+
+Unified contact management across all communication channels.
+
+**Usage:** `/contacts`
 
 ---
 
@@ -132,11 +201,51 @@ Extract financial data from quarterly earnings PDFs. Converts PDFs to markdown, 
 
 ---
 
+### /experiment
+
+Run autonomous experiment loops for any domain with measurable outcomes.
+
+**Usage:** `/experiment`
+
+---
+
 ### /feedback
 
 Record feedback on signals, recommendations, or predictions.
 
 **Usage:** `/feedback <target_id> <rating>`
+
+---
+
+### /ghost
+
+---
+
+**Usage:** `/ghost <question or situation>`
+
+---
+
+### /gift
+
+Find the perfect gift through a quick conversation. Uses Present Agent's recommendation engine with 171K products, real customer reviews, and gift intelligence.
+
+**Usage:** `/gift`
+
+---
+
+### /graduate
+
+---
+
+**Usage:** `/graduate`
+
+---
+
+### /ideas
+
+---
+
+**Usage:** `/ideas`
 
 ---
 
@@ -153,6 +262,30 @@ Extract and document learnings from the current conversation or work session.
 Active recall quiz for COMP 272 Data Structures. Tests retention at the appropriate depth layer.
 
 **Usage:** `/learning-quiz [topic] [layer:N]`
+
+---
+
+### /money
+
+Quick financial overview: payments due, account balances, upcoming obligations, and optimization opportunities.
+
+**Usage:** `/money [subcommand]`
+
+---
+
+### /monitor-add
+
+---
+
+**Usage:** `/monitor-add <type> <target> <name>`
+
+---
+
+### /monitor-run
+
+---
+
+**Usage:** `/monitor-run [--id <monitor_id>]`
 
 ---
 
@@ -176,7 +309,7 @@ Active recall quiz for COMP 272 Data Structures. Tests retention at the appropri
 
 Convert PDF to a single searchable markdown file.
 
-**Usage:** `/pdf-split <pdf_path> [output_dir]`
+**Usage:** `/pdf-split &lt;pdf_path> [output_dir]`
 
 ---
 
@@ -185,6 +318,30 @@ Convert PDF to a single searchable markdown file.
 ---
 
 **Usage:** `/read-first`
+
+---
+
+### /remind
+
+Check upcoming occasions from Google Calendar and Contacts. Shows who has birthdays, anniversaries, or events coming up so you never miss a gift opportunity.
+
+**Usage:** `/remind`
+
+---
+
+### /research
+
+---
+
+**Usage:** `/research <topic> [options]`
+
+---
+
+### /research-monitor-cmd
+
+---
+
+**Usage:** `/research-monitor add --category cs.AI --name "AI Research"`
 
 ---
 
@@ -201,6 +358,14 @@ Search ArXiv (1.5M+ papers) and Semantic Scholar (200M+ papers) for research pap
 ---
 
 **Usage:** `/research-parallel "note-taking apps" Notion Obsidian Roam`
+
+---
+
+### /research-read
+
+---
+
+**Usage:** `/research-read              # Show next paper to read`
 
 ---
 
@@ -228,6 +393,14 @@ Search ArXiv (1.5M+ papers) and Semantic Scholar (200M+ papers) for research pap
 
 ---
 
+### /substack-post
+
+Publish a draft to Substack using Playwright browser automation.
+
+**Usage:** `/substack-post <draft_path>`
+
+---
+
 ### /test-personas
 
 ---
@@ -241,6 +414,22 @@ Search ArXiv (1.5M+ papers) and Semantic Scholar (200M+ papers) for research pap
 Show recent Claude Code activity - what tools were called, what happened, and the reasoning flow.
 
 **Usage:** `/thinking [lines]`
+
+---
+
+### /today
+
+---
+
+**Usage:** `/today`
+
+---
+
+### /trace
+
+---
+
+**Usage:** `/trace <topic>`
 
 ---
 

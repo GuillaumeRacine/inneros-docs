@@ -2,54 +2,119 @@
 
 Agents for system architecture, secrets management, documentation, and testing.
 
-**24 agents** in this domain.
+**41 agents** in this domain.
 
 | Agent | Description |
 |-------|-------------|
-| `AGENTS_INDEX` | > 82 agents. Size: S(<3KB) M(3-8KB) L(>8KB). Load this file to pick the right agent fast. |
-| `archive-agent` | > Manages archives: maintains searchability, enforces retention, ensures recoverability |
+| `AGENTS_INDEX` | > 92 agents (4 archived). Size: S(&lt;3KB) M(3-8KB) L(>8KB). Load this file to pick the right agent fast. |
+| `academic-analyzer` | --- |
+| `academic-bar-raiser` | --- |
+| `academic-connector` | --- |
+| `academic-extractor` | --- |
+| `academic-orchestrator` | --- |
+| `academic-scout` | --- |
 | `bar-raiser` | > **Role**: Final quality gate for all trading data and outputs |
+| `cmo` | --- |
+| `community-growth` | --- |
+| `contacts-manager` | > Daily relationship management — harvest, track, and surface outreach needs. |
 | `context-bar-raiser` | > Continuous quality gate for [USER]'s personal context system. Assesses, optimizes, and evolves context quality across all files and all input channels. |
 | `context-curator` | > Maintains the living context system -- curates daily observations, graduates insights to permanent files, keeps context fresh and useful for agents. |
 | `deploy-verifier` | --- |
+| `design-director` | --- |
 | `doc-reader` | --- |
 | `docs-keeper` | > Maintains the InnerOS public documentation site by regenerating pages from vault sources, checking for PII leaks, and ensuring the site builds cleanly. |
+| `experiment-bar-raiser` | > Quality gate for experiment results. Enforces keep/discard discipline. |
+| `experiment-designer` | > Proposes experiments. Generates hypotheses. Prioritizes what to try next. |
+| `experiment-orchestrator` | > Autonomous experiment loop runner. Coordinates the experiment team. |
+| `firecrawl` | --- |
+| `lead-engine` | --- |
 | `learner` | > **Role**: Learn from corrections, improve system accuracy over time |
-| `learning-layers` | Assigns altitude levels to textbook concepts and structures learning materials by depth. Ensures proper coverage at each layer for progressive mastery. |
-| `learning-quiz` | Quiz and retention agent for active recall learning. Adapts to current study depth and identifies weak spots. |
 | `link-validator` | --- |
+| `myw-growth` | --- |
 | `obsidian-cli` | --- |
 | `persona-tester` | --- |
+| `phantom-buster` | > Domain expert for Phantom Buster operations, LinkedIn lead discovery, and social automation |
+| `present-agent-voc` | --- |
 | `product-manager` | > Autonomous orchestration layer accountable for vault North Star progress |
 | `recommendations-writer` | --- |
 | `research-bar-raiser` | > **Role**: Quality gate for investment research reports |
 | `secrets-1password` | > Primary secrets manager using 1Password CLI |
 | `secrets-keychain` | > Backup secrets manager using macOS Keychain + optional GPG encryption |
 | `system-architect` | > Full-view architect agent that maintains the visual system map of InnerOS, |
+| `teleprompter` | --- |
 | `ui-automator` | --- |
 | `vault-curator` | --- |
+| `vault-dashboard` | > Renders the Meta Vault command center view |
+| `vault-guardian` | Enforces vault location rules, prevents duplication, and maintains structural integrity of the shared PARA vault. |
 | `vault-linker` | --- |
-| `web-animation-expert` | Domain expert in web animations, motion design, and interactive visual experiences. Specializes in creating elegant, differentiated, premium-feeling animations for modern websites. |
 
 ## Agent Details
 
 ### Agents_Index
 
-> 82 agents. Size: S(<3KB) M(3-8KB) L(>8KB). Load this file to pick the right agent fast.
+> 92 agents (4 archived). Size: S(&lt;3KB) M(3-8KB) L(>8KB). Load this file to pick the right agent fast.
 
 ---
 
-### Archive Agent
+### Academic Analyzer
 
-> Manages archives: maintains searchability, enforces retention, ensures recoverability
+---
 
-**Tools:** Read, Bash, Write, Manual
+---
+
+### Academic Bar Raiser
+
+---
+
+---
+
+### Academic Connector
+
+---
+
+---
+
+### Academic Extractor
+
+---
+
+---
+
+### Academic Orchestrator
+
+---
+
+---
+
+### Academic Scout
+
+---
 
 ---
 
 ### Bar Raiser
 
 > **Role**: Final quality gate for all trading data and outputs
+
+---
+
+### Cmo
+
+---
+
+---
+
+### Community Growth
+
+---
+
+---
+
+### Contacts Manager
+
+> Daily relationship management — harvest, track, and surface outreach needs.
+
+**Tools:** Bash, Read, Write, Grep, Core, Close, Regular, Core, Close, Regular
 
 ---
 
@@ -71,6 +136,14 @@ Agents for system architecture, secrets management, documentation, and testing.
 
 ---
 
+### Design Director
+
+---
+
+**Tools:** Strategy
+
+---
+
 ### Doc Reader
 
 ---
@@ -83,25 +156,49 @@ Agents for system architecture, secrets management, documentation, and testing.
 
 ---
 
+### Experiment Bar Raiser
+
+> Quality gate for experiment results. Enforces keep/discard discipline.
+
+---
+
+### Experiment Designer
+
+> Proposes experiments. Generates hypotheses. Prioritizes what to try next.
+
+---
+
+### Experiment Orchestrator
+
+> Autonomous experiment loop runner. Coordinates the experiment team.
+
+---
+
+### Firecrawl
+
+---
+
+---
+
+### Lead Engine
+
+---
+
+---
+
 ### Learner
 
 > **Role**: Learn from corrections, improve system accuracy over time
 
 ---
 
-### Learning Layers
-
-Assigns altitude levels to textbook concepts and structures learning materials by depth. Ensures proper coverage at each layer for progressive mastery.
-
----
-
-### Learning Quiz
-
-Quiz and retention agent for active recall learning. Adapts to current study depth and identifies weak spots.
-
----
-
 ### Link Validator
+
+---
+
+---
+
+### Myw Growth
 
 ---
 
@@ -114,6 +211,20 @@ Quiz and retention agent for active recall learning. Adapts to current study dep
 ---
 
 ### Persona Tester
+
+---
+
+---
+
+### Phantom Buster
+
+> Domain expert for Phantom Buster operations, LinkedIn lead discovery, and social automation
+
+**Tools:** Bash, Read, WebFetch, Task
+
+---
+
+### Present Agent Voc
 
 ---
 
@@ -155,6 +266,12 @@ Quiz and retention agent for active recall learning. Adapts to current study dep
 
 ---
 
+### Teleprompter
+
+---
+
+---
+
 ### Ui Automator
 
 ---
@@ -167,16 +284,20 @@ Quiz and retention agent for active recall learning. Adapts to current study dep
 
 ---
 
+### Vault Dashboard
+
+> Renders the Meta Vault command center view
+
+---
+
+### Vault Guardian
+
+Enforces vault location rules, prevents duplication, and maintains structural integrity of the shared PARA vault.
+
+---
+
 ### Vault Linker
 
 ---
-
----
-
-### Web Animation Expert
-
-Domain expert in web animations, motion design, and interactive visual experiences. Specializes in creating elegant, differentiated, premium-feeling animations for modern websites.
-
-**Tools:** Lottie, Rive, SVGator, Spline, GSAP, Framer, Three, CSS, Easing, Timing
 
 ---

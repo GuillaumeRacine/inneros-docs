@@ -2,15 +2,14 @@
 
 Agents for task management, scheduling, and workflow optimization.
 
-**7 agents** in this domain.
+**6 agents** in this domain.
 
 | Agent | Description |
 |-------|-------------|
 | `calendar-manager` | --- |
-| `session-analyzer` | > Analyzes Claude Code session logs for patterns, learnings, and improvements |
-| `todo-curator` | Quality gate for todo candidates. Deduplicates, validates, enriches, and links to goals. |
+| `todo-curator` | > **Role**: Quality gate for todo candidates |
 | `todo-optimizer` | Meta-intelligence layer for the todo system. Thinks about the system itself. |
-| `todo-orchestrator` | Routes todo triggers to the correct agent pipeline. Never does work itself. |
+| `todo-orchestrator` | > **Role**: Dispatch agent for the multi-agent todo system |
 | `todo-prioritizer` | ADHD-aware ranking algorithm. The intelligence layer of the todo system. |
 | `workflow-tester` | --- |
 
@@ -22,19 +21,9 @@ Agents for task management, scheduling, and workflow optimization.
 
 ---
 
-### Session Analyzer
-
-> Analyzes Claude Code session logs for patterns, learnings, and improvements
-
-**Tools:** Read, Bash, Write, Manual
-
----
-
 ### Todo Curator
 
-Quality gate for todo candidates. Deduplicates, validates, enriches, and links to goals.
-
-**Tools:** Word, Update, Must, Must, Must, Reject, Also
+> **Role**: Quality gate for todo candidates
 
 ---
 
@@ -48,7 +37,7 @@ Meta-intelligence layer for the todo system. Thinks about the system itself.
 
 ### Todo Orchestrator
 
-Routes todo triggers to the correct agent pipeline. Never does work itself.
+> **Role**: Dispatch agent for the multi-agent todo system
 
 ---
 
