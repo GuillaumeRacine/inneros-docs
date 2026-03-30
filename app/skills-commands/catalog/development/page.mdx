@@ -2,10 +2,11 @@
 
 Commands for coding, deployment, testing, and validation.
 
-**56 commands** in this category.
+**59 commands** in this category.
 
 | Command | Description |
 |---------|-------------|
+| `/agent-health` | Audit all agents for operational wiring, staleness, and broken declarations. |
 | `/agent-leaderboard` | Generate weekly agent performance leaderboard from Claude Code session logs. |
 | `/analyze-batch` | --- |
 | `/book-convert` | Convert a PDF book to clean, well-formatted markdown optimized for Obsidian and LLM analysis. |
@@ -31,6 +32,7 @@ Commands for coding, deployment, testing, and validation.
 | `/ideas` | --- |
 | `/learn` | Extract and document learnings from the current conversation or work session. |
 | `/learning-quiz` | Active recall quiz for COMP 272 Data Structures. Tests retention at the appropriate depth layer. |
+| `/mac-cleanup` | Sweep loose files from home directory, detect stale repos, report disk anomalies. |
 | `/money` | Quick financial overview: payments due, account balances, upcoming obligations, and optimization opportunities. |
 | `/monitor-add` | --- |
 | `/monitor-run` | --- |
@@ -61,9 +63,18 @@ Commands for coding, deployment, testing, and validation.
 | `/verify-deploy` | --- |
 | `/verify-web` | --- |
 | `/vm` | Fetch the last N voice memos, transcribe them via OpenAI Whisper, and present processed summaries. |
+| `/voice-dispatch` | Process new voice memos immediately - transcribe, classify, and route. |
 | `/web-check` | --- |
 
 ## Command Details
+
+### /agent-health
+
+Audit all agents for operational wiring, staleness, and broken declarations.
+
+**Usage:** `/agent-health [--fix | --report | --stale]`
+
+---
 
 ### /agent-leaderboard
 
@@ -262,6 +273,14 @@ Extract and document learnings from the current conversation or work session.
 Active recall quiz for COMP 272 Data Structures. Tests retention at the appropriate depth layer.
 
 **Usage:** `/learning-quiz [topic] [layer:N]`
+
+---
+
+### /mac-cleanup
+
+Sweep loose files from home directory, detect stale repos, report disk anomalies.
+
+**Usage:** `/mac-cleanup [--dry-run | --report | --disk]`
 
 ---
 
@@ -502,6 +521,14 @@ Run this skill after making code changes to verify they work before presenting t
 Fetch the last N voice memos, transcribe them via OpenAI Whisper, and present processed summaries.
 
 **Usage:** `/vm`
+
+---
+
+### /voice-dispatch
+
+Process new voice memos immediately - transcribe, classify, and route.
+
+**Usage:** `/voice-dispatch [--all | --last N | --backlog]`
 
 ---
 

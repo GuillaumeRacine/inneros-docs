@@ -2,26 +2,38 @@
 
 Core infrastructure agents for secrets, deployment, testing, and system architecture.
 
-**10 agents** in this domain.
+**14 agents** in this domain.
 
 | Agent | Description |
 |-------|-------------|
 | `AGENTS_INDEX` | 92 agents (4 archived). Size: S(&lt;3KB) M(3-8KB) L(>8KB). Load this file to pick the right agent fast. |
+| `agent-health-monitor` | Monitors operational health of all agents - detects unwired, stale, and broken agents before they become invisible problems |
 | `bar-raiser` | **Role**: Final quality gate for all trading data and outputs |
 | `deploy-verifier` | Post-deployment verification agent. Validates changes are actually live on production before reporting completion. Works with any Vercel frontend project. |
 | `design-director` | Design Director - creates high-end visual assets including websites, landing pages, video animations, graphics, and scroll effects. USE WHEN building websites, creating landing pages, generating ad vi |
 | `firecrawl` | Web scraping agent using Firecrawl API for anti-bot-protected sites (LinkedIn, Facebook, etc.) and bulk site crawling |
+| `gmail-optimizer` | Email pattern learning, importance scoring, auto-unsubscribe, and inbox optimization |
+| `mac-cleaner` | Local Mac Mini cleanup agent - sweeps loose files, maintains directory hygiene, reports disk anomalies |
 | `persona-tester` | Automated persona-based testing agent. Creates diverse user personas and runs multiple test conversations to identify UX issues. Use when you need to test chat interfaces, recommendation systems, or u |
 | `secrets-1password` | Primary secrets manager using 1Password CLI |
 | `secrets-keychain` | Backup secrets manager using macOS Keychain + optional GPG encryption |
 | `system-architect` | Full-view architect agent that maintains the visual system map of InnerOS, |
 | `ui-automator` | UI automation expert - maps repetitive tasks to automated workflows using Playwright MCP (web), Keyboard Maestro (native apps), and UiPath (fallback). Designs, builds, and maintains automation scripts |
+| `voice-dispatcher` | Real-time voice memo processor - transcribes, classifies, and routes memos to appropriate workflows every 15 minutes |
 
 ## Agent Details
 
 ### Agents_Index
 
 92 agents (4 archived). Size: S(&lt;3KB) M(3-8KB) L(>8KB). Load this file to pick the right agent fast.
+
+---
+
+### Agent Health Monitor
+
+Monitors operational health of all agents - detects unwired, stale, and broken agents before they become invisible problems
+
+**Type:** `agent`
 
 ---
 
@@ -48,6 +60,24 @@ Design Director - creates high-end visual assets including websites, landing pag
 ### Firecrawl
 
 Web scraping agent using Firecrawl API for anti-bot-protected sites (LinkedIn, Facebook, etc.) and bulk site crawling
+
+---
+
+### Gmail Optimizer
+
+Email pattern learning, importance scoring, auto-unsubscribe, and inbox optimization
+
+**Tools:** Bash, Read, Write, Grep, Glob, WebFetch
+
+**Type:** `gmail`
+
+---
+
+### Mac Cleaner
+
+Local Mac Mini cleanup agent - sweeps loose files, maintains directory hygiene, reports disk anomalies
+
+**Type:** `mac`
 
 ---
 
@@ -78,5 +108,13 @@ Full-view architect agent that maintains the visual system map of InnerOS,
 ### Ui Automator
 
 UI automation expert - maps repetitive tasks to automated workflows using Playwright MCP (web), Keyboard Maestro (native apps), and UiPath (fallback). Designs, builds, and maintains automation scripts
+
+---
+
+### Voice Dispatcher
+
+Real-time voice memo processor - transcribes, classifies, and routes memos to appropriate workflows every 15 minutes
+
+**Type:** `voice`
 
 ---
