@@ -17,18 +17,18 @@ Agents for delta-neutral strategies, position tracking, yield monitoring, and De
 | `dn-reconciliation` | Cross-checks DN Monitor data across multiple sources to ensure consistency. |
 | `dn-returns-tracker` | Track, calculate, and report accurate returns data for all Delta-Neutral CLM positions across chains and DEXs. |
 | `dn-staleness-monitor` | Monitors data freshness and alerts on stale data. Prevents display of outdated information. |
-| `dn-team-index` | ``` |
-| `dn-trader` | > Autonomous on-chain execution agent for the delta-neutral CLM strategy. |
-| `dn-tx-auditor` | > **Role**: Quality control for the transaction tracking pipeline |
-| `dn-tx-collector` | > **Role**: Collect and store raw transaction data from all DN strategy wallets |
-| `dn-tx-parser` | > **Role**: Parse raw transactions into categorized CLM operations |
+| `dn-team-index` | ┌─────────────────────────────────────────────────────────────────────┐ |
+| `dn-trader` | Autonomous on-chain execution agent for the delta-neutral CLM strategy. |
+| `dn-tx-auditor` | **Role**: Quality control for the transaction tracking pipeline |
+| `dn-tx-collector` | **Role**: Collect and store raw transaction data from all DN strategy wallets |
+| `dn-tx-parser` | **Role**: Parse raw transactions into categorized CLM operations |
 | `dn-yield-tracker` | Track, measure, and report yield across all CLM positions with both **current** (run rate) and **historical** (claimed) views. |
-| `hedge-manager` | > **Role**: Own all perpetual hedge positions on Hyperliquid |
-| `investment-analyst` | > Strategic evaluation layer for capital allocation decisions |
-| `lending-monitor` | > **Role**: Own all lending/borrowing positions on AAVE and Morpho |
-| `position-tracker` | > **Role**: Own all CLM position data across DEXs |
-| `risk-guardian` | > **Role**: Validate all data, detect anomalies, enforce safety rules |
-| `trading-chief` | > **Role**: Master orchestrator for all delta-neutral trading operations |
+| `hedge-manager` | **Role**: Own all perpetual hedge positions on Hyperliquid |
+| `investment-analyst` | Strategic evaluation layer for capital allocation decisions |
+| `lending-monitor` | **Role**: Own all lending/borrowing positions on AAVE and Morpho |
+| `position-tracker` | **Role**: Own all CLM position data across DEXs |
+| `risk-guardian` | **Role**: Validate all data, detect anomalies, enforce safety rules |
+| `trading-chief` | **Role**: Master orchestrator for all delta-neutral trading operations |
 
 ## Agent Details
 
@@ -108,13 +108,13 @@ Monitors data freshness and alerts on stale data. Prevents display of outdated i
 
 ### Dn Team Index
 
-```
+┌─────────────────────────────────────────────────────────────────────┐
 
 ---
 
 ### Dn Trader
 
-> Autonomous on-chain execution agent for the delta-neutral CLM strategy.
+Autonomous on-chain execution agent for the delta-neutral CLM strategy.
 
 **Type:** `dn`
 
@@ -122,19 +122,19 @@ Monitors data freshness and alerts on stale data. Prevents display of outdated i
 
 ### Dn Tx Auditor
 
-> **Role**: Quality control for the transaction tracking pipeline
+**Role**: Quality control for the transaction tracking pipeline
 
 ---
 
 ### Dn Tx Collector
 
-> **Role**: Collect and store raw transaction data from all DN strategy wallets
+**Role**: Collect and store raw transaction data from all DN strategy wallets
 
 ---
 
 ### Dn Tx Parser
 
-> **Role**: Parse raw transactions into categorized CLM operations
+**Role**: Parse raw transactions into categorized CLM operations
 
 ---
 
@@ -146,36 +146,36 @@ Track, measure, and report yield across all CLM positions with both **current** 
 
 ### Hedge Manager
 
-> **Role**: Own all perpetual hedge positions on Hyperliquid
+**Role**: Own all perpetual hedge positions on Hyperliquid
 
 ---
 
 ### Investment Analyst
 
-> Strategic evaluation layer for capital allocation decisions
+Strategic evaluation layer for capital allocation decisions
 
 ---
 
 ### Lending Monitor
 
-> **Role**: Own all lending/borrowing positions on AAVE and Morpho
+**Role**: Own all lending/borrowing positions on AAVE and Morpho
 
 ---
 
 ### Position Tracker
 
-> **Role**: Own all CLM position data across DEXs
+**Role**: Own all CLM position data across DEXs
 
 ---
 
 ### Risk Guardian
 
-> **Role**: Validate all data, detect anomalies, enforce safety rules
+**Role**: Validate all data, detect anomalies, enforce safety rules
 
 ---
 
 ### Trading Chief
 
-> **Role**: Master orchestrator for all delta-neutral trading operations
+**Role**: Master orchestrator for all delta-neutral trading operations
 
 ---

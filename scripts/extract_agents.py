@@ -13,22 +13,51 @@ AGENTS_DIR = Path.home() / ".claude" / "agents"
 OUTPUT_DIR = Path(__file__).parent.parent / "app" / "agents" / "catalog"
 
 # Domain classification based on agent name prefixes and keywords
+# Order matters: first match wins. Put specific prefixes before broad keywords.
 DOMAIN_MAP = {
+    "research": {
+        "title": "Research & Hypotheses",
+        "description": "Agents for academic research, hypothesis testing, and research quality assurance.",
+        "prefixes": ["academic-", "research-", "hypothesis-"],
+        "keywords": ["insight-extract"],
+    },
+    "experiments": {
+        "title": "Experiments & Calibration",
+        "description": "Agents for experiment design, orchestration, and calibration tracking.",
+        "prefixes": ["experiment-", "calibration-"],
+    },
     "trading": {
         "title": "Trading & DeFi",
         "description": "Agents for delta-neutral strategies, position tracking, yield monitoring, and DeFi operations.",
         "prefixes": ["dn-", "hedge-", "trading-", "position-", "lending-", "investment-", "risk-"],
         "keywords": ["trader", "yield", "price", "capital", "reconcil", "tx-"],
     },
+    "vault": {
+        "title": "Vault & Knowledge Management",
+        "description": "Agents for vault curation, linking, archival, and Obsidian integration.",
+        "prefixes": ["vault-", "obsidian-", "naming-"],
+        "keywords": ["link-validator"],
+    },
+    "context": {
+        "title": "Context & Documentation",
+        "description": "Agents for context curation, documentation management, and quality assurance.",
+        "prefixes": ["context-", "doc-", "docs-"],
+    },
+    "marketing": {
+        "title": "Marketing & Growth",
+        "description": "Agents for marketing operations, community growth, lead generation, and audience building.",
+        "prefixes": ["cmo", "community-", "lead-", "myw-", "phantom-"],
+        "keywords": ["tao-strategist", "tao-lead"],
+    },
     "writing": {
         "title": "Writing & Content",
-        "description": "Agents for content creation, publishing, and knowledge management.",
-        "keywords": ["tao-", "lyricist", "content-", "podcast-"],
+        "description": "Agents for content creation, publishing, and content analysis.",
+        "keywords": ["content-", "podcast-"],
     },
     "music": {
         "title": "Music & Audio",
         "description": "Agents for music production, recording sessions, and audio processing.",
-        "keywords": ["ableton", "rc600", "tascam", "audio-", "ghost-league"],
+        "keywords": ["ableton", "rc600", "tascam", "audio-", "ghost-league", "teleprompter"],
     },
     "home": {
         "title": "Home & Family",
@@ -37,15 +66,18 @@ DOMAIN_MAP = {
     },
     "productivity": {
         "title": "Productivity & Tasks",
-        "description": "Agents for task management, scheduling, and workflow optimization.",
-        "keywords": ["todo-", "calendar-", "workflow-", "session-"],
+        "description": "Agents for task management, scheduling, learning, and workflow optimization.",
+        "prefixes": ["todo-"],
+        "keywords": ["calendar-", "workflow-", "session-", "learner",
+                      "contacts-manager", "present-agent", "recommendations-",
+                      "product-manager"],
     },
     "data": {
         "title": "Data & Analysis",
-        "description": "Agents for data extraction, analysis, anomaly detection, and reporting.",
+        "description": "Agents for data extraction, anomaly detection, signal aggregation, and reporting.",
         "keywords": [
-            "anomaly-", "calibration-", "signal-", "reporting-",
-            "insight-", "history-", "hypothesis-",
+            "anomaly-", "signal-", "reporting-",
+            "history-",
         ],
     },
     "media": {
@@ -53,7 +85,7 @@ DOMAIN_MAP = {
         "description": "Agents for file management, photo review, screenshots, and media processing.",
         "keywords": [
             "media-", "photo-", "screenshot-", "image-",
-            "dropbox-", "gdrive-", "icloud-", "naming-",
+            "dropbox-", "gdrive-", "icloud-",
         ],
     },
     "communication": {
@@ -63,12 +95,10 @@ DOMAIN_MAP = {
     },
     "system": {
         "title": "System & Infrastructure",
-        "description": "Agents for system architecture, secrets management, documentation, and testing.",
+        "description": "Core infrastructure agents for secrets, deployment, testing, and system architecture.",
         "keywords": [
-            "system-", "secrets-", "doc-", "link-", "vault-",
-            "persona-", "recommendations-", "web-animation",
-            "learner", "learning-",
-            "product-manager",
+            "system-", "secrets-", "persona-", "firecrawl",
+            "deploy-", "bar-raiser", "ui-automator", "design-director",
         ],
     },
 }
@@ -98,11 +128,51 @@ def parse_agent_file(filepath: Path, rules: dict) -> dict:
     tools = []
     subagent_type = ""
 
+    # Check for YAML frontmatter (description field)
+    in_frontmatter = False
+    frontmatter_desc = ""
     for i, line in enumerate(lines):
-        # Extract first paragraph as description
-        if not description and line.strip() and not line.startswith("#"):
-            description = line.strip()
+        if i == 0 and line.strip() == "---":
+            in_frontmatter = True
+            continue
+        if in_frontmatter:
+            if line.strip() == "---":
+                in_frontmatter = False
+                continue
+            dm = re.match(r"^description:\s*(.+)", line)
+            if dm:
+                frontmatter_desc = dm.group(1).strip().strip("\"'")
+            continue
 
+    if frontmatter_desc:
+        description = frontmatter_desc
+
+    # Fallback: find first meaningful non-header, non-frontmatter line
+    if not description:
+        past_frontmatter = False
+        in_fm = False
+        for line in lines:
+            if line.strip() == "---":
+                if not in_fm:
+                    in_fm = True
+                else:
+                    in_fm = False
+                    past_frontmatter = True
+                continue
+            if in_fm:
+                continue
+            stripped = line.strip()
+            # Skip empty, headers, horizontal rules, bare dashes
+            if (stripped and
+                not stripped.startswith("#") and
+                stripped != "---" and
+                len(stripped) > 10 and
+                not re.match(r"^[-*=]+$", stripped)):
+                # Strip leading > for blockquotes
+                description = re.sub(r"^\*?\*?>?\s*", "", stripped)
+                break
+
+    for i, line in enumerate(lines):
         # Look for tools/capabilities
         if re.match(r"^#+\s*(tools|capabilities|available tools)", line, re.IGNORECASE):
             for j in range(i + 1, min(i + 20, len(lines))):
