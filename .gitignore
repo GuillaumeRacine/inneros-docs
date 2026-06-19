@@ -10,3 +10,7 @@ next-env.d.ts
 scripts/__pycache__/
 config/docs_refresh_state.json
 .vercel
+
+# local env (never commit secrets)
+.env
+.env.*
