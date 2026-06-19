@@ -2,17 +2,20 @@
 
 Agents for delta-neutral strategies, position tracking, yield monitoring, and DeFi operations.
 
-**23 agents** in this domain.
+**26 agents** in this domain.
 
 | Agent | Description |
 |-------|-------------|
 | `dn-bar-raiser` | Quality control agent that validates data accuracy, catches errors, and ensures all returns/efficiency calculations meet quality standards before being used for decisions. |
 | `dn-capital-efficiency` | Analyze and optimize capital deployment across Delta-Neutral CLM positions to maximize risk-adjusted returns. |
+| `dn-coder` | Implements against a single planner-approved GitHub issue in dn-auto. Auto-creates branch, pushes, opens draft PR, and requests review from dn-qa. Owns implementation correctness against acceptance cr |
 | `dn-data-validator` | Validates DN Monitor data against on-chain sources. Ensures ground truth. |
 | `dn-learner` | Continuous improvement agent that analyzes historical performance, identifies patterns, and generates actionable insights to improve DN strategy returns over time. |
 | `dn-master-trader` | Probabilistic orchestrator for the DN Monitor trading system. Coordinates subagents for analysis, diagnostics, and insights while respecting the deterministic execution core. |
+| `dn-planner` | Decomposes dn-auto epics from ROADMAP.md (or free-form goals) into ordered, testable GitHub issues with clear acceptance criteria and dependency graph. Stops at issue creation — never writes code. |
 | `dn-position-reconciler` | Reconcile on-chain position state with transaction history to ensure accuracy. |
 | `dn-price-feed` | Provide accurate, real-time price data for all tokens across DN strategy positions. |
+| `dn-qa` | Verifies a coder-submitted PR against its issue's acceptance criteria, runs a bar-raiser pass for production-class bugs, and either approves+merges or kicks back with concrete fixes. Owns the diff tha |
 | `dn-quality-orchestrator` | Master orchestrator for DN Monitor data quality. Coordinates all validation agents. |
 | `dn-reconciliation` | Cross-checks DN Monitor data across multiple sources to ensure consistency. |
 | `dn-returns-tracker` | Track, calculate, and report accurate returns data for all Delta-Neutral CLM positions across chains and DEXs. |
@@ -24,10 +27,10 @@ Agents for delta-neutral strategies, position tracking, yield monitoring, and De
 | `dn-tx-parser` | **Role**: Parse raw transactions into categorized CLM operations |
 | `dn-yield-tracker` | Track, measure, and report yield across all CLM positions with both **current** (run rate) and **historical** (claimed) views. |
 | `hedge-manager` | **Role**: Own all perpetual hedge positions on Hyperliquid |
-| `investment-analyst` | Strategic evaluation layer for capital allocation decisions |
+| `investment-analyst` | **DEPRECATED (2026-04-07):** Absorbed into `cfo-investments.md` under the CFO agent system. |
 | `lending-monitor` | **Role**: Own all lending/borrowing positions on AAVE and Morpho |
 | `position-tracker` | **Role**: Own all CLM position data across DEXs |
-| `risk-guardian` | **Role**: Validate all data, detect anomalies, enforce safety rules |
+| `risk-guardian` | **DEPRECATED (2026-04-07):** Absorbed into `cfo-risk.md` under the CFO agent system. |
 | `trading-chief` | **Role**: Master orchestrator for all delta-neutral trading operations |
 
 ## Agent Details
@@ -41,6 +44,12 @@ Quality control agent that validates data accuracy, catches errors, and ensures 
 ### Dn Capital Efficiency
 
 Analyze and optimize capital deployment across Delta-Neutral CLM positions to maximize risk-adjusted returns.
+
+---
+
+### Dn Coder
+
+Implements against a single planner-approved GitHub issue in dn-auto. Auto-creates branch, pushes, opens draft PR, and requests review from dn-qa. Owns implementation correctness against acceptance cr
 
 ---
 
@@ -64,6 +73,12 @@ Probabilistic orchestrator for the DN Monitor trading system. Coordinates subage
 
 ---
 
+### Dn Planner
+
+Decomposes dn-auto epics from ROADMAP.md (or free-form goals) into ordered, testable GitHub issues with clear acceptance criteria and dependency graph. Stops at issue creation — never writes code.
+
+---
+
 ### Dn Position Reconciler
 
 Reconcile on-chain position state with transaction history to ensure accuracy.
@@ -73,6 +88,12 @@ Reconcile on-chain position state with transaction history to ensure accuracy.
 ### Dn Price Feed
 
 Provide accurate, real-time price data for all tokens across DN strategy positions.
+
+---
+
+### Dn Qa
+
+Verifies a coder-submitted PR against its issue's acceptance criteria, runs a bar-raiser pass for production-class bugs, and either approves+merges or kicks back with concrete fixes. Owns the diff tha
 
 ---
 
@@ -152,7 +173,7 @@ Track, measure, and report yield across all CLM positions with both **current** 
 
 ### Investment Analyst
 
-Strategic evaluation layer for capital allocation decisions
+**DEPRECATED (2026-04-07):** Absorbed into `cfo-investments.md` under the CFO agent system.
 
 ---
 
@@ -170,7 +191,7 @@ Strategic evaluation layer for capital allocation decisions
 
 ### Risk Guardian
 
-**Role**: Validate all data, detect anomalies, enforce safety rules
+**DEPRECATED (2026-04-07):** Absorbed into `cfo-risk.md` under the CFO agent system.
 
 ---
 

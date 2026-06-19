@@ -2,11 +2,11 @@
 
 Commands that report current state across life domains.
 
-**14 commands** in this category.
+**16 commands** in this category.
 
 | Command | Description |
 |---------|-------------|
-| `/corp-status` | Corporate administration status for Stoic Capital and Ensemble Ventures. |
+| `/corp-status` | > **DEPRECATED (2026-04-07):** Partially superseded by `/cfo tax` for filing deadlines and BCGO coordination. |
 | `/data-sources-status` | Quick health overview of all data sources across [USER]'s system. |
 | `/docs-status` | Document expiry and renewal tracking - passports, insurance, registrations. |
 | `/family-status` | Family admin overview - [USER], Mom (Cécile), pregnancy/baby. |
@@ -16,16 +16,18 @@ Commands that report current state across life domains.
 | `/media-status` | Media vault queue and processing dashboard. |
 | `/pm-status` | Full system health check across all vaults. |
 | `/research-status` | Research vault hypothesis dashboard. |
-| `/stoic-status` | Stoic vault investment dashboard. |
+| `/secrets-status` | Show which credentials are available, where they come from, and which would trigger |
+| `/shopify-status` | --- |
+| `/stoic-status` | > **DEPRECATED (2026-04-07):** Superseded by `/cfo net-worth` and `/cfo` for investment overview. |
 | `/supplier-update-status` | Update a candidate's vetting status. |
 | `/tao-status` | Tao vault growth dashboard. |
-| `/tax-status` | Tax preparation status for Stoic Capital and Ensemble Ventures. |
+| `/tax-status` | > **DEPRECATED (2026-04-07):** Superseded by `/cfo tax`. The CFO tax strategist has better data and deadline tracking. |
 
 ## Command Details
 
 ### /corp-status
 
-Corporate administration status for Stoic Capital and Ensemble Ventures.
+> **DEPRECATED (2026-04-07):** Partially superseded by `/cfo tax` for filing deadlines and BCGO coordination.
 
 **Usage:** `/corp-status`
 
@@ -103,9 +105,25 @@ Research vault hypothesis dashboard.
 
 ---
 
+### /secrets-status
+
+Show which credentials are available, where they come from, and which would trigger
+
+**Usage:** `/secrets-status`
+
+---
+
+### /shopify-status
+
+---
+
+**Usage:** `/shopify-status`
+
+---
+
 ### /stoic-status
 
-Stoic vault investment dashboard.
+> **DEPRECATED (2026-04-07):** Superseded by `/cfo net-worth` and `/cfo` for investment overview.
 
 **Usage:** `/stoic-status [--detailed] [--focus <position_id>]`
 
@@ -129,7 +147,7 @@ Tao vault growth dashboard.
 
 ### /tax-status
 
-Tax preparation status for Stoic Capital and Ensemble Ventures.
+> **DEPRECATED (2026-04-07):** Superseded by `/cfo tax`. The CFO tax strategist has better data and deadline tracking.
 
 **Usage:** `/tax-status [--entity stoic|ensemble|personal]`
 

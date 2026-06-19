@@ -2,21 +2,32 @@
 
 Core infrastructure agents for secrets, deployment, testing, and system architecture.
 
-**14 agents** in this domain.
+**25 agents** in this domain.
 
 | Agent | Description |
 |-------|-------------|
 | `AGENTS_INDEX` | 92 agents (4 archived). Size: S(&lt;3KB) M(3-8KB) L(>8KB). Load this file to pick the right agent fast. |
 | `agent-health-monitor` | Monitors operational health of all agents - detects unwired, stale, and broken agents before they become invisible problems |
 | `bar-raiser` | **Role**: Final quality gate for all trading data and outputs |
+| `cfo` | You are [USER]'s Chief Financial Officer -- a world-class financial controller, planner, and investment overseer. You are accountable for two north star KPIs: |
+| `cfo-fpa` | Financial Planning & Analysis sub-agent reporting to the CFO. Owns the consolidated P&L, net worth tracking, savings rate (north star KPI), and expense control. |
+| `cfo-investments` | Investment oversight sub-agent reporting to the CFO. Tracks cross-portfolio allocation, performance attribution, and rebalancing signals. Owns the ROIC north star KPI. |
+| `cfo-monarch-auditor` | Monthly transaction-control sub-agent for the CFO system. Reconciles Monarch against bank statements, cleans category errors, and prevents income/expense distortion from transfers, card payments, and  |
+| `cfo-risk` | Risk management sub-agent reporting to the CFO. Maintains the risk register, tracks insurance gaps, monitors liability interest, and ensures regulatory compliance. |
+| `cfo-tax` | Tax strategy sub-agent reporting to the CFO. Tracks all deadlines across 3 entities + personal, coordinates with BCGO accountants, and optimizes tax position proactively. |
+| `cfo-treasury` | Cash management sub-agent reporting to the CFO. Ensures cash is where it needs to be, when it needs to be. Prevents late fees and interest accrual through proactive cash positioning. |
+| `corp-compliance` | Owns annual corporate compliance filings for Gui's entities, including Corporations Canada annual returns, ISC filing checks, REQ annual declarations, and tracker updates. |
 | `deploy-verifier` | Post-deployment verification agent. Validates changes are actually live on production before reporting completion. Works with any Vercel frontend project. |
 | `design-director` | Design Director - creates high-end visual assets including websites, landing pages, video animations, graphics, and scroll effects. USE WHEN building websites, creating landing pages, generating ad vi |
+| `figma-editor` | Applies and reviews Figma design changes across any project via the Figma MCP. USE WHEN editing a Figma file, reviewing a Figma handoff, catching design-system inconsistencies, checking frames for ove |
 | `firecrawl` | Web scraping agent using Firecrawl API for anti-bot-protected sites (LinkedIn, Facebook, etc.) and bulk site crawling |
+| `gift-tester` | Autonomous gift-finding tester -- simulates real users end-to-end through MCP tools, evaluates quality, logs results |
 | `gmail-optimizer` | Email pattern learning, importance scoring, auto-unsubscribe, and inbox optimization |
 | `mac-cleaner` | Local Mac Mini cleanup agent - sweeps loose files, maintains directory hygiene, reports disk anomalies |
 | `persona-tester` | Automated persona-based testing agent. Creates diverse user personas and runs multiple test conversations to identify UX issues. Use when you need to test chat interfaces, recommendation systems, or u |
 | `secrets-1password` | Primary secrets manager using 1Password CLI |
 | `secrets-keychain` | Backup secrets manager using macOS Keychain + optional GPG encryption |
+| `shopify-manager` | Shopify store management - product sync, bulk operations, catalog management, store setup |
 | `system-architect` | Full-view architect agent that maintains the visual system map of InnerOS, |
 | `ui-automator` | UI automation expert - maps repetitive tasks to automated workflows using Playwright MCP (web), Keyboard Maestro (native apps), and UiPath (fallback). Designs, builds, and maintains automation scripts |
 | `voice-dispatcher` | Real-time voice memo processor - transcribes, classifies, and routes memos to appropriate workflows every 15 minutes |
@@ -43,6 +54,54 @@ Monitors operational health of all agents - detects unwired, stale, and broken a
 
 ---
 
+### Cfo
+
+You are [USER]'s Chief Financial Officer -- a world-class financial controller, planner, and investment overseer. You are accountable for two north star KPIs:
+
+---
+
+### Cfo Fpa
+
+Financial Planning & Analysis sub-agent reporting to the CFO. Owns the consolidated P&L, net worth tracking, savings rate (north star KPI), and expense control.
+
+---
+
+### Cfo Investments
+
+Investment oversight sub-agent reporting to the CFO. Tracks cross-portfolio allocation, performance attribution, and rebalancing signals. Owns the ROIC north star KPI.
+
+---
+
+### Cfo Monarch Auditor
+
+Monthly transaction-control sub-agent for the CFO system. Reconciles Monarch against bank statements, cleans category errors, and prevents income/expense distortion from transfers, card payments, and 
+
+---
+
+### Cfo Risk
+
+Risk management sub-agent reporting to the CFO. Maintains the risk register, tracks insurance gaps, monitors liability interest, and ensures regulatory compliance.
+
+---
+
+### Cfo Tax
+
+Tax strategy sub-agent reporting to the CFO. Tracks all deadlines across 3 entities + personal, coordinates with BCGO accountants, and optimizes tax position proactively.
+
+---
+
+### Cfo Treasury
+
+Cash management sub-agent reporting to the CFO. Ensures cash is where it needs to be, when it needs to be. Prevents late fees and interest accrual through proactive cash positioning.
+
+---
+
+### Corp Compliance
+
+Owns annual corporate compliance filings for Gui's entities, including Corporations Canada annual returns, ISC filing checks, REQ annual declarations, and tracker updates.
+
+---
+
 ### Deploy Verifier
 
 Post-deployment verification agent. Validates changes are actually live on production before reporting completion. Works with any Vercel frontend project.
@@ -57,9 +116,21 @@ Design Director - creates high-end visual assets including websites, landing pag
 
 ---
 
+### Figma Editor
+
+Applies and reviews Figma design changes across any project via the Figma MCP. USE WHEN editing a Figma file, reviewing a Figma handoff, catching design-system inconsistencies, checking frames for ove
+
+---
+
 ### Firecrawl
 
 Web scraping agent using Firecrawl API for anti-bot-protected sites (LinkedIn, Facebook, etc.) and bulk site crawling
+
+---
+
+### Gift Tester
+
+Autonomous gift-finding tester -- simulates real users end-to-end through MCP tools, evaluates quality, logs results
 
 ---
 
@@ -96,6 +167,12 @@ Primary secrets manager using 1Password CLI
 ### Secrets Keychain
 
 Backup secrets manager using macOS Keychain + optional GPG encryption
+
+---
+
+### Shopify Manager
+
+Shopify store management - product sync, bulk operations, catalog management, store setup
 
 ---
 

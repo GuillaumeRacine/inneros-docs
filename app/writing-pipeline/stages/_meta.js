@@ -11,5 +11,6 @@ export default {
   '09-style-compression': 'Stage 09: Style Compression',
   '10-distribution': 'Stage 10: Distribution',
   '11-canon-indexer': 'Stage 11: Canon Indexer',
-  '12-notes-agent': 'Stage 12: Notes Agent'
+  '12-notes-agent': 'Stage 12: Notes Agent',
+  '12-notes-agent-v2': 'Stage 12: Notes Agent'
 }

@@ -2,12 +2,18 @@
 
 Commands for content creation, publishing pipeline, and archiving.
 
-**2 commands** in this category.
+**8 commands** in this category.
 
 | Command | Description |
 |---------|-------------|
 | `/archive-post` | --- |
 | `/publish-prep` | --- |
+| `/tao-post-review` | T+7 performance bar-raiser. Closes the learning loop. Reads live Substack analytics for a post (published 7 days ago), compares to the rolling baseline of the last 4 posts, scores performance across o |
+| `/tao-publish-check` | Pre-publish master bar-raiser for Tao of Founders. The keystone quality gate that runs Saturday evening before Sunday 6am publish. Evaluates the entire publication as one finished artifact across cont |
+| `/tao-quote-find` | Find the most salient, memorable, and contextually relevant quotes to insert into a Tao of Founders post. Quotes can be from anyone — Tao Te Ching, Stoics, scientists, athletes, founders, novelists, p |
+| `/tao-review` | Tao of Founders unified weekly review. On-demand orchestrator that pulls Substack, Notes poster health, Shopify commerce, and auto-fires the T+7 post performance bar-raiser when an eligible post is de |
+| `/tao-visual-cover` | Generate the Tao of Founders cover assets (OG 1200×628 + square 1080×1080) for a Substack post draft. |
+| `/tao-visual-notes` | Generate Substack Notes quote cards (1080×1080) for approved excerpts from a published post. |
 
 ## Command Details
 
@@ -24,5 +30,53 @@ Commands for content creation, publishing pipeline, and archiving.
 ---
 
 **Usage:** `/publish-prep <draft-filename>`
+
+---
+
+### /tao-post-review
+
+T+7 performance bar-raiser. Closes the learning loop. Reads live Substack analytics for a post (published 7 days ago), compares to the rolling baseline of the last 4 posts, scores performance across o
+
+**Usage:** `/tao-post-review <slug-or-folder>             # Review by slug or folder path`
+
+---
+
+### /tao-publish-check
+
+Pre-publish master bar-raiser for Tao of Founders. The keystone quality gate that runs Saturday evening before Sunday 6am publish. Evaluates the entire publication as one finished artifact across cont
+
+**Usage:** `/tao-publish-check <post_folder>             # Run all checks, fail if BLOCKED`
+
+---
+
+### /tao-quote-find
+
+Find the most salient, memorable, and contextually relevant quotes to insert into a Tao of Founders post. Quotes can be from anyone — Tao Te Ching, Stoics, scientists, athletes, founders, novelists, p
+
+**Usage:** `/tao-quote-find <post_folder>`
+
+---
+
+### /tao-review
+
+Tao of Founders unified weekly review. On-demand orchestrator that pulls Substack, Notes poster health, Shopify commerce, and auto-fires the T+7 post performance bar-raiser when an eligible post is de
+
+**Usage:** `/tao-review                       # Current ISO week`
+
+---
+
+### /tao-visual-cover
+
+Generate the Tao of Founders cover assets (OG 1200×628 + square 1080×1080) for a Substack post draft.
+
+**Usage:** `/tao-visual-cover <post_folder>`
+
+---
+
+### /tao-visual-notes
+
+Generate Substack Notes quote cards (1080×1080) for approved excerpts from a published post.
+
+**Usage:** `/tao-visual-notes <post_folder>`
 
 ---
