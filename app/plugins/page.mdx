@@ -1,0 +1,21 @@
+# Plugins
+
+Claude Code **plugins** bundle their own skills, agents, and commands on top of the native `~/.claude/{agents,commands}` layer. They are installed from marketplaces into `~/.claude/plugins/` and are a first-class part of the agent-tech ground truth — most notably **compound-engineering**, the default coding loop.
+
+**4 plugins** installed, contributing **49 skills**, **43 agents**, and **3 commands**.
+
+| Plugin | Skills | Agents | Commands | Description |
+|--------|:------:|:------:|:--------:|-------------|
+| [`compound-engineering`](/plugins/catalog/compound-engineering) | 39 | 43 | 0 | AI-powered development tools for code review, research, design, and workflow automation. |
+| [`figma`](/plugins/catalog/figma) | 9 | 0 | 0 | Plugin that includes the Figma MCP server and Skills for common workflows |
+| [`frontend-design`](/plugins/catalog/frontend-design) | 1 | 0 | 0 | Frontend design skill for UI/UX implementation |
+| [`ralph-loop`](/plugins/catalog/ralph-loop) | 0 | 0 | 3 | Continuous self-referential AI loops for interactive iterative development, implementing the Ralph Wiggum technique. Run Claude in a while-true loop with the same prompt until task completion. |
+
+## Registered but not cached
+
+These plugins are registered in `installed_plugins.json` but their cache is empty (not materialized on this machine), so their skills/agents are not currently active:
+
+`ableton-live`, `audio-analysis`, `dropbox-sync`, `lyrics`, `rc600-import`, `release`, `tascam-import`.
+
+
+> These come from Claude Code's plugin system and are **separate** from the native agents/commands and from the **Codex** environment — see [Environments](/environments) for the cross-tool map.

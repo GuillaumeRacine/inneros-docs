@@ -42,6 +42,14 @@ SECTIONS = {
         "description": "Writing pipeline stage pages (13 stages)",
         "module": "extract_writing_pipeline",
     },
+    "plugins": {
+        "description": "Claude Code plugin catalog (skills/agents/commands per plugin)",
+        "module": "extract_plugins",
+    },
+    "environments": {
+        "description": "Claude Code vs Codex environment map",
+        "module": "extract_environments",
+    },
     "stats": {
         "description": "System statistics page",
         "module": "extract_stats",
@@ -105,6 +113,8 @@ def check_pii() -> bool:
         APP_DIR / "writing-pipeline" / "stages",
         APP_DIR / "reference" / "system-stats",
         APP_DIR / "data-sources" / "connected",
+        APP_DIR / "plugins",
+        APP_DIR / "environments",
     ]
 
     for gen_dir in generated_dirs:

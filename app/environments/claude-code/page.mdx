@@ -1,0 +1,24 @@
+# Claude Code Environment
+
+The primary environment. Everything is plain files under `~/.claude/` (plus vault-synced mirrors).
+
+## Inventory
+
+| Layer | Count | Location |
+|-------|------:|----------|
+| Agents | 112 | `~/.claude/agents/` |
+| Commands / skills | 151 | `~/.claude/commands/` |
+| Plugins | 4 | `~/.claude/plugins/` |
+| — plugin skills | 49 | (bundled) |
+| — plugin agents | 43 | (bundled) |
+| Rules (path-scoped) | 5 | `~/.claude/rules/` |
+| Hooks | 3 | `~/.claude/hooks/` |
+| On-demand context | 6 | `~/.claude/context/` |
+
+**MCP servers:** `firecrawl`, `present-agent`
+
+**Resolver:** `~/.claude/resolver.md` maps task triggers → on-demand `context/*.md` files, keeping the always-on `CLAUDE.md` lean.
+
+**Installed plugins:** `compound-engineering`, `figma`, `frontend-design`, `ralph-loop`.
+
+See [Plugins](/plugins) for the full per-plugin catalog.

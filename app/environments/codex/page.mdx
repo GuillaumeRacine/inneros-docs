@@ -1,0 +1,43 @@
+# Codex Environment
+
+The secondary environment (OpenAI Codex CLI). Config in `~/.codex/`.
+
+## Configuration
+
+| Setting | Value |
+|---------|-------|
+| Model | `gpt-5.5` |
+| Reasoning effort | `high` |
+| Service tier | `fast` |
+| Trusted projects | 25 |
+| Instruction layer | `AGENTS.md` (present) |
+| MCP servers | `node_repl`, `present-agent` |
+| Memory | sqlite memories + goals tracking |
+
+## Skill packs (15)
+
+| Skill | Description |
+|-------|-------------|
+| `canary` | Post-deploy monitoring loop for live apps: watch key URLs after deployment for console errors, broken pages, obvious regressions, and operational anomalies. Use when asked to monitor after deploy, run |
+| `check-resolvable` | Audit skills, agents, slash commands, and routing docs for duplicates, dead entries, broken symlinks, missing SKILL.md files, stale references, and consolidation opportunities. Use when asked to check |
+| `corporations-canada-annual-return` | Use when managing Corporations Canada annual returns, overdue annual return notices, federal corporation compliance, corporation keys, ISC filing, annual filing reminders, or Gui's yearly corporate fi |
+| `design-shotgun` | Generate or direct 4-6 distinct design variants, compare them against product intent and taste constraints, and update a lightweight taste profile from feedback. Use when asked for design options, vis |
+| `docs-audit` | Audit, reconcile, and reorganize project documentation. Use when asked to run /docs-audit, audit docs, clean up docs structure, find duplicate/conflicting docs, establish source-of-truth documentation |
+| `ensembl3-workflows` | Operational workflow hub for taking over and running Ensembl3 processes from documentation and linked repos (Kindle-to-md, Transcript-pipeline, Research Vault, Stoic Vault, MiniVault). Use when the us |
+| `ensemble-studio` | Use for planning, designing, building, shipping, and monetizing Shopify apps with GitHub issues, current Shopify docs, specialized subagents, and documented verification evidence. |
+| `guard` | Maximum safety mode for risky work: warn on destructive commands, restrict edits to an agreed directory, and separate read-only investigation from writes. Use when asked for guard mode, careful mode,  |
+| `monarch-monthly-audit` | Use when auditing Monarch Money transactions against bank statements, categorizing personal/business expenses, reconciling statement files, finding transfer/double-counting issues, or running Gui's mo |
+| `office-hours` | YC-style adversarial product interrogation for early product ideas, feature concepts, positioning, and startup strategy. Use when asked for office hours, forcing questions, whether an idea is worth bu |
+| `pdf` | Use when tasks involve reading, creating, or reviewing PDF files where rendering and layout matter; prefer visual checks by rendering pages (Poppler) and use Python tools such as `reportlab`, `pdfplum |
+| `plan-ceo-review` | CEO/founder-mode review that challenges a plan or feature idea, finds the 10-star product hiding inside the request, and chooses Expand, Selective Expansion, Hold, or Cut scope. Use when asked to thin |
+| `quebec-corporate-annual-compliance` | Use when preparing, filing, documenting, or auditing Quebec Registraire des entreprises annual/current updates, address changes, and annual resolutions for Quebec-registered corporations such as Capit |
+| `skillify` | Turn a successful repeated workflow, prompt, session pattern, command sequence, or one-off agent process into a reusable Codex and Claude Code skill. Use when asked to skillify, codify a workflow, cre |
+| `spec` | Turn vague intent into an executable specification or GitHub issue with phases, acceptance criteria, verification, risks, and implementation boundaries. Use when asked to spec this out, file an issue, |
+
+## Commands (1)
+
+| Command | Description |
+|---------|-------------|
+| `docs-audit` | Run a source-of-truth documentation audit for the current repository. |
+
+> Codex shares the machine, secrets, and many trusted projects with Claude Code, but maintains its own skills, commands, MCP, and memory. See [Environments](/environments) for the cross-tool comparison.

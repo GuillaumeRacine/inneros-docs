@@ -1,0 +1,25 @@
+# Environments: Claude Code + Codex
+
+This system runs across **two AI coding environments**. They share the same machine, secrets, and many projects, but each has its **own** agent/skill inventory and config. This page is the cross-tool map so it's always clear *what is available where*.
+
+| Capability | Claude Code | Codex |
+|------------|-------------|-------|
+| Native agents | **112** (`~/.claude/agents`) | — (uses `AGENTS.md` instructions) |
+| Native commands / skills | **151** (`~/.claude/commands`) | **1** (`~/.codex/commands`) |
+| Skill packs | via plugins (below) | **15** (`~/.codex/skills`) |
+| Plugins | **4** → 49 skills + 43 agents | — |
+| Rules (path-scoped) | **5** (`~/.claude/rules`) | — |
+| Hooks | **3** (`~/.claude/hooks`) | — |
+| Resolver / on-demand context | **6** files + resolver.md | — |
+| Instruction layer | `CLAUDE.md` (global + project) | `AGENTS.md` (present) |
+| Default model | (session) | **gpt-5.5** (reasoning: high) |
+| MCP servers | `firecrawl`, `present-agent` | `node_repl`, `present-agent` |
+| Persistent memory | auto-memory + `/memory-search` | sqlite memories + goals |
+
+## At a glance
+
+- **Claude Code** is the primary environment: 112 agents, 151 commands, 4 plugins (49 plugin skills + 43 plugin agents), 5 rules, 3 hooks, and a resolver/context layer. See [Claude Code](/environments/claude-code).
+- **Codex** is the secondary environment (OpenAI): model `gpt-5.5`, 15 skill packs, 1 commands, an `AGENTS.md` instruction layer, and its own MCP + memory. See [Codex](/environments/codex).
+- Cross-model review bridges the two: `/cross-review` has Claude implement and **Codex** independently grade the diff (PASS/FAIL).
+
+> The [Agents](/agents), [Skills & Commands](/skills-commands), and [Plugins](/plugins) catalogs document the Claude Code side in depth; the [Codex](/environments/codex) page documents the Codex side.
