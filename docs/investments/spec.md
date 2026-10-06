@@ -242,6 +242,48 @@ step 1). Consequences:
   validation and fail-closed behavior. That is a hosting configuration change,
   so it needs Gui's approval (open question 4) and is out of scope for this spec PR.
 
+### 3.2.1 Ruling 4 explained: env values vs a private object store
+
+Verified 2026-10-06 from code and Vercel docs. Vercel allows **64 KB combined**
+for all environment variables per deployment, no single value above 64 KB, and
+5 KB per variable for Edge-runtime functions (this app reads on the Node
+runtime). The real finance value is **43,588 bytes** (`snapshot.b64`), against
+its own 48,000-byte cap. Reader: `lib/finance-snapshot.mjs`; publisher:
+`finance_dashboard_refresh.py` PATCHes the sensitive env record, then redeploys.
+
+| | Today (env value) | After (private object store) |
+|---|---|---|
+| How data reaches the site | Mac script builds snapshot, gzips and base64s it, PATCHes a sensitive Vercel env value, redeploys production | Same script writes one private object, no env change; redeploy only for code changes |
+| Where it lives | Vercel project settings, encrypted, baked into each deployment | Private store, same account, read at request time |
+| Who can read it | Project members cannot read it back (sensitive); the running server code can | Only server code holding store access (OIDC on Vercel, a write token on the Mac) |
+| Ceiling | 64 KB total, 43.6 KB used (68%) | Megabytes |
+| Freshness | Needs redeploy per change | Read-through, can update without redeploy (needs a cache rule) |
+| New failure modes | None beyond redeploy | Store outage or empty store at read time, token expiry on the Mac, stale cache; reader must stay fail-closed |
+
+Benefit: only room. Steps 1-2 need about 12 KB, so 43.6 + 12 = about 55.6 KB,
+87% of the cap. It fits, with the finance value at its 48 KB cap still 60 KB.
+Step 3 (positions, 24-36 months of marks, returns) does not.
+
+| Option | Verdict |
+|---|---|
+| Compress harder | Already gzip. Base85 or trimming saves under 10%. Buys months, not step 3 |
+| Split into several values | Limit is the combined total. Does not help |
+| Vercel Blob, private store | Best fit. Private by default, OIDC read on Vercel, pennies per month (Pro; free within Hobby limits). Cost: one new store, one write token on the Mac, hosting change |
+| Edge Config (now Global Config) | 1 MB per store, fast reads, updates without redeploy, uses the Vercel token we already have. Built for config, not sensitive data; I did not find a write-only mode in the docs, so contents are likely visible in the dashboard. Second choice |
+| Encrypted file in the private repo | Works, but every refresh becomes a commit and deploy, ciphertext of net worth lives in git history forever, and the key still sits in an env value. Rejected |
+
+Risks of moving: privacy surface changes (new place holding financial data, new
+token to guard on the Mac, must stay out of logs and the browser), one more
+service to be down, and a reader rewrite that keeps today's fail-closed rules
+(canonical base64, decompression bound, access check before read). None are
+blockers; all are testable.
+
+Recommendation: do not move now. Steps 1-2 fit in the env value with 13% to
+spare, so ship them as specified. Make the move a gated PR of its own at the
+start of step 3 (Vercel Blob private, same validation, kept behind Gui's
+approval), and trigger it earlier only if the investments value passes about
+16 KB encoded or the combined total passes 56 KB (checked by the producer).
+
 ### 3.3 The Metric object (every number)
 
 ```json
@@ -498,5 +540,5 @@ ledger. The real list with amounts lives in the private tracker, not here.
 1. **Tasks:** one-off and blocked items as `invest-ops` issues in the private Context repo, recurring steps from the run-sheet template, todo board as promotion target only? (Proposed: yes.)
 2. **Ranking:** overdue → due ≤ 7 days → due ≤ 30 days → undated, then dollars at stake, then fewest minutes? (Proposed: yes.)
 3. **Route:** `/investments` as its own section, with Finance's "Investments" tab turning into a link once step 3 ships? (Proposed: yes.)
-4. **Transport:** before step 3, move both snapshots from environment values to a private object store read server-side? (Proposed: yes; it is a hosting change you approve at that point.)
+4. **Transport (see 3.2.1; recommendation: defer to the start of step 3, not now):** before step 3, move both snapshots from environment values to a private object store read server-side? (Proposed: yes; it is a hosting change you approve at that point.)
 5. **Net worth:** the Investments Overview shows the one net-worth number (ledger-based, loan double-count corrected), and Finance stops showing its own once step 3 ships? (Proposed: yes.)
